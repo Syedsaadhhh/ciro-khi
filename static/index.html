@@ -2052,6 +2052,167 @@
     .demo-btn.alarm { color: #FF5566; border-color: #5A0C10; }
     .demo-btn.telem { color: #AA44FF; border-color: #3A1870; }
     .demo-btn.multi { color: #FF9933; border-color: #402000; }
+
+    /* ══ DEMO STATE CHIP ══ */
+    .demo-state-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 8px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 6px;
+      letter-spacing: 0.5px;
+      border: 1px solid;
+      margin-top: 4px;
+    }
+    .demo-state-chip.confirmed { background: #041208; color: #3DFFA0; border-color: #0A3818; }
+    .demo-state-chip.review    { background: #1A0C00; color: #FF9933;  border-color: #402000; }
+    .demo-state-chip.rejected  { background: #0A0304; color: #FF5566;  border-color: #5A0C10; }
+    .demo-state-chip.fallback  { background: #0C0510; color: #AA44FF;  border-color: #3A1870; }
+
+    /* ══ SIMULATED DISCLAIMER BADGE ══ */
+    .sim-disclaimer {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 7px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      color: #FF9933;
+      background: rgba(255,153,0,0.08);
+      border: 1px solid rgba(255,153,0,0.25);
+      border-radius: 4px;
+      padding: 2px 7px;
+      text-align: center;
+      margin-top: 4px;
+      display: block;
+    }
+
+    /* ══ RESOURCE ALLOCATION PANEL ══ */
+    #resourcePanel {
+      position: absolute;
+      bottom: 8px;
+      left: 8px;
+      right: 8px;
+      background: rgba(9, 11, 14, 0.96);
+      backdrop-filter: blur(14px);
+      border: 1px solid #1C2330;
+      border-radius: 12px;
+      padding: 10px 12px;
+      z-index: 22;
+      display: none;
+      flex-direction: column;
+      gap: 6px;
+      animation: resultSlideUp 0.35s cubic-bezier(.32,1,.48,1);
+    }
+    #resourcePanel.visible { display: flex; }
+    #resourcePanel.confirmed { border-color: #0A3818; }
+    #resourcePanel.review    { border-color: #402000; }
+    #resourcePanel.fallback  { border-color: #3A1870; }
+    .rp-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 9px;
+      font-weight: 700;
+      color: #1BF075;
+      letter-spacing: 1.5px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .rp-close {
+      cursor: pointer;
+      font-size: 11px;
+      color: var(--muted);
+      padding: 0 3px;
+    }
+    .rp-close:hover { color: var(--red); }
+    .rp-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 5px;
+    }
+    .rp-cell {
+      background: rgba(0,0,0,0.35);
+      border-radius: 7px;
+      border: 1px solid #1C2330;
+      padding: 6px 7px;
+    }
+    .rp-icon { font-size: 12px; }
+    .rp-val {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1.1;
+    }
+    .rp-lbl {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 6.5px;
+      color: var(--muted);
+      letter-spacing: 0.5px;
+      margin-top: 1px;
+    }
+    .rp-reason {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 8px;
+      color: #5A8090;
+      line-height: 1.4;
+      padding: 5px 7px;
+      background: rgba(0,0,0,0.3);
+      border-radius: 5px;
+      border: 1px solid #1A2436;
+    }
+    .rp-tabs {
+      display: flex;
+      gap: 4px;
+      overflow-x: auto;
+    }
+    .rp-tab {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 7.5px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 5px;
+      cursor: pointer;
+      border: 1px solid;
+      white-space: nowrap;
+      transition: all .15s;
+      letter-spacing: 0.5px;
+    }
+    .rp-tab.active { background: #041208; color: #3DFFA0; border-color: #0A3818; }
+    .rp-tab:not(.active) { background: rgba(0,0,0,0.3); color: var(--muted); border-color: #1A2436; }
+    .rp-tab:hover:not(.active) { border-color: var(--muted); }
+
+    /* ══ STAKEHOLDER CARDS ══ */
+    .sth-card {
+      border-radius: 8px;
+      padding: 7px 9px;
+      border: 1px solid;
+      background: rgba(0,0,0,0.35);
+      display: none;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .sth-card.active { display: flex; }
+    .sth-card-title {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+    .sth-card-body {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 8px;
+      color: #5A8090;
+      line-height: 1.45;
+    }
+    .sth-disclaimer {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 7px;
+      font-weight: 700;
+      color: #FF9933;
+      letter-spacing: 0.5px;
+      margin-top: 2px;
+    }
   </style>
 </head>
 
@@ -2305,7 +2466,10 @@
           <!-- Result Overlay (appears after dispatch) -->
           <div id="resultOverlay" class="result-overlay">
             <div class="result-row">
-              <div class="result-title" id="resultTitle" style="color: #1BF075;">INCIDENT CONFIRMED</div>
+              <div>
+                <div class="result-title" id="resultTitle" style="color: #1BF075;">INCIDENT CONFIRMED</div>
+                <span class="demo-state-chip confirmed" id="demoStateChip">● CONFIRMED FLOOD</span>
+              </div>
               <div style="display:flex;gap:10px;">
                 <div class="result-metric">
                   <div class="result-metric-val" id="resultSeverity" style="color:#FF2233;">—</div>
@@ -2331,6 +2495,78 @@
               </div>
             </div>
             <div class="result-action" id="resultAction">Awaiting commander recommendation...</div>
+            <button onclick="showResourcePanel()" style="background:rgba(27,240,117,0.07);border:1px solid #0A3818;border-radius:6px;color:#1BF075;font-family:'Rajdhani',sans-serif;font-size:9px;font-weight:700;letter-spacing:1px;padding:5px;cursor:pointer;width:100%;text-align:center;">⬢ VIEW RESOURCE ALLOCATION &amp; STAKEHOLDER MESSAGES</button>
+          </div>
+
+          <!-- Resource Allocation + Stakeholder Panel -->
+          <div id="resourcePanel">
+            <div class="rp-title">
+              <span>⬢ RESOURCE ALLOCATION</span>
+              <span class="rp-close" onclick="hideResourcePanel()">✕</span>
+            </div>
+            <!-- Resource grid -->
+            <div class="rp-grid" id="rpGrid">
+              <div class="rp-cell">
+                <div class="rp-icon">🚿</div>
+                <div class="rp-val" id="rpPumps" style="color:#1A8FFF;">3</div>
+                <div class="rp-lbl">PUMP UNITS</div>
+              </div>
+              <div class="rp-cell">
+                <div class="rp-icon">🚦</div>
+                <div class="rp-val" id="rpTraffic" style="color:#FF9933;">4</div>
+                <div class="rp-lbl">TRAFFIC POLICE</div>
+              </div>
+              <div class="rp-cell">
+                <div class="rp-icon">🚒</div>
+                <div class="rp-val" id="rpRescue" style="color:#FF2233;">2</div>
+                <div class="rp-lbl">RESCUE TEAMS</div>
+              </div>
+              <div class="rp-cell">
+                <div class="rp-icon">🔧</div>
+                <div class="rp-val" id="rpUtility" style="color:#AA44FF;">1</div>
+                <div class="rp-lbl">UTILITY TEAM</div>
+              </div>
+              <div class="rp-cell" style="grid-column:span 2;">
+                <div class="rp-icon">🏥</div>
+                <div class="rp-val" id="rpHospital" style="color:#FF5566;font-size:11px;">CIVIL HOSPITAL KHI</div>
+                <div class="rp-lbl">HOSPITAL ALERT</div>
+              </div>
+            </div>
+            <div class="rp-reason" id="rpReason">Allocation based on severity score and affected population estimate from StrategistAgent.</div>
+            <!-- Stakeholder tabs -->
+            <div class="rp-tabs" id="rpTabs">
+              <div class="rp-tab active" onclick="switchSthTab(this,'public')">📢 PUBLIC</div>
+              <div class="rp-tab" onclick="switchSthTab(this,'police')">🚔 POLICE</div>
+              <div class="rp-tab" onclick="switchSthTab(this,'hospital')">🏥 HOSPITAL</div>
+              <div class="rp-tab" onclick="switchSthTab(this,'utility')">🔧 UTILITY</div>
+              <div class="rp-tab" onclick="switchSthTab(this,'municipal')">🏛 MUNICIPAL</div>
+            </div>
+            <!-- Stakeholder message cards -->
+            <div class="sth-card confirmed active" id="sth-public" style="border-color:#0A3818;">
+              <div class="sth-card-title" style="color:#3DFFA0;">📢 PUBLIC ALERT DRAFT</div>
+              <div class="sth-card-body" id="sth-public-body">⚠ FLOOD ALERT — University Road area. Roads blocked. Use M.A. Jinnah Rd via alternative route. Avoid area for next 90 min. Emergency units deployed.</div>
+              <div class="sth-disclaimer">⚡ SIMULATED — OPERATOR APPROVAL REQUIRED BEFORE BROADCAST</div>
+            </div>
+            <div class="sth-card" id="sth-police" style="border-color:#082040;">
+              <div class="sth-card-title" style="color:#55AAFF;">🚔 TRAFFIC POLICE NOTE</div>
+              <div class="sth-card-body" id="sth-police-body">Deploy 4 constables to University Rd / Nipa Chowrangi junction. Divert inbound traffic to M.A. Jinnah Rd. ETA response required in &lt;10 min. Coordinate with CIRO command channel.</div>
+              <div class="sth-disclaimer">⚡ SIMULATED — OPERATOR APPROVAL REQUIRED BEFORE DISPATCH</div>
+            </div>
+            <div class="sth-card" id="sth-hospital" style="border-color:#380C10;">
+              <div class="sth-card-title" style="color:#FF5566;">🏥 HOSPITAL READINESS NOTE</div>
+              <div class="sth-card-body" id="sth-hospital-body">ALERT: Civil Hospital Karachi — possible trauma intake from flood zone. Activate emergency intake protocol. Estimated affected population: 14,500. Water level rising at 0.4m. Stand by.</div>
+              <div class="sth-disclaimer">⚡ SIMULATED — OPERATOR APPROVAL REQUIRED BEFORE ACTIVATION</div>
+            </div>
+            <div class="sth-card" id="sth-utility" style="border-color:#3A1870;">
+              <div class="sth-card-title" style="color:#AA44FF;">🔧 UTILITY PROVIDER NOTE</div>
+              <div class="sth-card-body" id="sth-utility-body">CIRO ALERT: University Road sector experiencing flooding. Inspect drainage sub-mains at grid ref 24.918°N 67.112°E. Risk of electrical shorting in low-lying infrastructure. 1 utility team dispatched.</div>
+              <div class="sth-disclaimer">⚡ SIMULATED — OPERATOR APPROVAL REQUIRED BEFORE DISPATCH</div>
+            </div>
+            <div class="sth-card" id="sth-municipal" style="border-color:#082040;">
+              <div class="sth-card-title" style="color:#1A8FFF;">🏛 MUNICIPAL CONTROL NOTE</div>
+              <div class="sth-card-body" id="sth-municipal-body">Session ID: auto-generated. Incident confirmed by CIRO ValidatorGate. Priority: CRITICAL. All dispatch orders require operator approval in CIRO command console before execution. Logs stored in Firestore: database=cirokhi.</div>
+              <div class="sth-disclaimer">⚡ SIMULATED — OPERATOR APPROVAL REQUIRED BEFORE EXECUTION</div>
+            </div>
           </div>
 
 
@@ -2838,19 +3074,19 @@
           <div class="ai alert-item" data-type="dispatch">
             <div class="aib di">🚨</div>
             <div class="abody">
-              <div style="display:flex;justify-content:space-between;margin-bottom:3px"><span class="atitle">DISPATCH: 5
-                  SUCTION PUMPS</span><span class="atime">09:14:16</span></div>
-              <div class="adesc">Municipal services dispatched to I.I. Chundrigar Rd. ETA: 8 minutes.</div><span
-                class="abadge br">MUNICIPAL DISPATCH</span>
+              <div style="display:flex;justify-content:space-between;margin-bottom:3px"><span class="atitle">DISPATCH: 5 SUCTION PUMPS</span><span class="atime">09:14:16</span></div>
+              <div class="adesc">Municipal services dispatched to I.I. Chundrigar Rd. ETA: 8 minutes.</div>
+              <span class="abadge br">MUNICIPAL DISPATCH</span>
+              <span class="sim-disclaimer">SIMULATED — OPERATOR APPROVAL REQUIRED</span>
             </div>
           </div>
           <div class="ai alert-item" data-type="dispatch">
             <div class="aib di">🚒</div>
             <div class="abody">
-              <div style="display:flex;justify-content:space-between;margin-bottom:3px"><span class="atitle">RESCUE TEAM
-                  ALERT</span><span class="atime">09:13:30</span></div>
-              <div class="adesc">Rescue teams deployed to University Road sector. Water levels: 0.4m rising.</div><span
-                class="abadge br">RESCUE DISPATCH</span>
+              <div style="display:flex;justify-content:space-between;margin-bottom:3px"><span class="atitle">RESCUE TEAM ALERT</span><span class="atime">09:13:30</span></div>
+              <div class="adesc">Rescue teams deployed to University Road sector. Water levels: 0.4m rising.</div>
+              <span class="abadge br">RESCUE DISPATCH</span>
+              <span class="sim-disclaimer">SIMULATED — OPERATOR APPROVAL REQUIRED</span>
             </div>
           </div>
           <div class="ai alert-item" data-type="geo">
@@ -3768,6 +4004,7 @@
               </div>
               <div class="adesc">${alertDesc}</div>
               <span class="abadge ${alertBadgeClass}">${alertBadgeText}</span>
+              ${(type === 1 || type === 3 || type === 4) ? '<span class="sim-disclaimer">SIMULATED — OPERATOR APPROVAL REQUIRED</span>' : ''}
             </div>
           `;
           alertList.insertBefore(ai, alertList.firstChild);
@@ -3835,12 +4072,92 @@
       }, 4000);
     }
 
+    /* ── Resource Panel controls ── */
+    function showResourcePanel() {
+      const overlay = document.getElementById('resultOverlay');
+      if (overlay) overlay.classList.remove('visible');
+      const panel = document.getElementById('resourcePanel');
+      if (panel) {
+        panel.classList.add('visible');
+        panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }
+    function hideResourcePanel() {
+      const panel = document.getElementById('resourcePanel');
+      if (panel) panel.classList.remove('visible');
+    }
+    function switchSthTab(el, id) {
+      document.querySelectorAll('.rp-tab').forEach(t => t.classList.remove('active'));
+      el.classList.add('active');
+      document.querySelectorAll('.sth-card').forEach(c => c.classList.remove('active'));
+      const card = document.getElementById('sth-' + id);
+      if (card) card.classList.add('active');
+    }
+    function populateResourcePanel(status, result) {
+      const plan = result.plan || {};
+      const action = result.action || {};
+      const inc = result.incident || {};
+      const pop = plan.affected_population || 0;
+      const sev = inc.severity || 0;
+      const delay = plan.estimated_delay_minutes || 0;
+      const loc = action.alert_message || plan.mitigation_strategy || 'University Road area';
+
+      // Scale resources by severity
+      const pumps  = sev >= 8 ? 5 : sev >= 5 ? 3 : 1;
+      const police = sev >= 8 ? 6 : sev >= 5 ? 4 : 2;
+      const rescue = sev >= 8 ? 3 : sev >= 5 ? 2 : 1;
+      const utility= sev >= 8 ? 2 : 1;
+      const hospital = sev >= 7 ? 'CIVIL + LIAQUAT' : 'CIVIL HOSPITAL KHI';
+
+      document.getElementById('rpPumps').textContent   = pumps;
+      document.getElementById('rpTraffic').textContent = police;
+      document.getElementById('rpRescue').textContent  = rescue;
+      document.getElementById('rpUtility').textContent = utility;
+      document.getElementById('rpHospital').textContent= hospital;
+
+      const rpReason = document.getElementById('rpReason');
+      if (status === 'completed') {
+        rpReason.textContent = `Severity ${sev} · ~${pop.toLocaleString()} affected · ${delay}min delay. StrategistAgent allocated ${pumps} pumps, ${police} traffic units, ${rescue} rescue teams.`;
+      } else if (status === 'requires_operator_review') {
+        rpReason.textContent = 'Allocation on HOLD — ValidatorGate flagged contradiction. Operator must approve before dispatch.';
+      } else {
+        rpReason.textContent = 'No resource allocation required. Signal rejected or no incident detected.';
+      }
+
+      // Stakeholder messages — dynamic
+      const alertMsg = action.alert_message || 'Active flooding detected. Emergency response deployed.';
+      document.getElementById('sth-public-body').textContent =
+        `⚠ FLOOD ALERT — ${plan.priority ? plan.priority.toUpperCase() : 'HIGH'} PRIORITY. ${alertMsg} Estimated delay: ${delay} min. Avoid affected area. Use alternate routes.`;
+      document.getElementById('sth-police-body').textContent =
+        `Deploy ${police} personnel to junction control. Redirect inbound traffic per CIRO route advisory. ETA response required in <10 min. Coordinate via CIRO command channel.`;
+      document.getElementById('sth-hospital-body').textContent =
+        `CIRO ALERT: Possible trauma intake from flood zone. Estimated affected population: ${pop.toLocaleString()}. Severity: ${sev}. Water level rising. Activate emergency intake protocol if severity ≥ 7.`;
+      document.getElementById('sth-utility-body').textContent =
+        `CIRO ALERT: Flooding in target sector. Inspect drainage sub-mains and electrical infrastructure. ${utility} utility team(s) dispatched. Risk of underground cable shorting.`;
+      document.getElementById('sth-municipal-body').textContent =
+        `Incident logged in Firestore (database=cirokhi). All dispatch orders require operator console approval. Priority: ${plan.priority || 'unknown'}. Session ID auto-generated. Trace streaming on /ws/live-trace.`;
+
+      // Style panel border by status
+      const panel = document.getElementById('resourcePanel');
+      if (panel) {
+        panel.classList.remove('confirmed','review','fallback');
+        if (status === 'completed') panel.classList.add('confirmed');
+        else if (status === 'requires_operator_review') panel.classList.add('review');
+        else panel.classList.add('fallback');
+      }
+
+      // Reset to first tab
+      document.querySelectorAll('.rp-tab').forEach((t,i) => t.classList.toggle('active', i===0));
+      document.querySelectorAll('.sth-card').forEach((c,i) => c.classList.toggle('active', i===0));
+    }
+
     function processDispatchResult(data) {
       const overlay = document.getElementById('resultOverlay');
       const lbl = document.getElementById('ui-safety-label');
       const badges = document.getElementById('source-badges-container');
       const result = data.result || {};
       const status = result.status || data.status || 'unknown';
+      hideResourcePanel();
 
       // --- SAFETY LABEL ---
       if (status === 'completed') {
@@ -3873,14 +4190,12 @@
             badges.appendChild(badge);
           }
         });
-        // Add operator review badge if needed
         if (status === 'requires_operator_review') {
           const rb = document.createElement('span');
           rb.className = 'src-badge review';
           rb.textContent = '⚠ REVIEW REQUIRED';
           badges.appendChild(rb);
         }
-        // Add fallback badge if safety_validation says so
         const safety = result.safety_validation || {};
         if (safety.fallback_mode) {
           const fb = document.createElement('span');
@@ -3890,12 +4205,22 @@
         }
       }
 
+      // --- DEMO STATE CHIP ---
+      const chip = document.getElementById('demoStateChip');
+      if (chip) {
+        const t = window.currentScenarioType || 1;
+        chip.className = 'demo-state-chip';
+        if (t === 1) { chip.classList.add('confirmed'); chip.textContent = '● CONFIRMED FLOOD'; }
+        else if (t === 2) { chip.classList.add('rejected'); chip.textContent = '✕ FALSE ALARM'; }
+        else if (t === 3) { chip.classList.add('fallback'); chip.textContent = '◐ MOCK FALLBACK'; }
+        else { chip.classList.add('review'); chip.textContent = '⚠ OPERATOR REVIEW'; }
+      }
+
       // --- RESULT OVERLAY (screenshot-ready) ---
       if (status === 'completed' && result.incident) {
         const inc = result.incident;
         const plan = result.plan || {};
         const action = result.action || {};
-        
         overlay.className = 'result-overlay visible confirmed';
         document.getElementById('resultTitle').textContent = 'INCIDENT CONFIRMED';
         document.getElementById('resultTitle').style.color = '#1BF075';
@@ -3907,14 +4232,11 @@
         document.getElementById('resultPopulation').textContent = (plan.affected_population || 0).toLocaleString();
         document.getElementById('resultPriority').textContent = (plan.priority || '—').toUpperCase();
         document.getElementById('resultAction').textContent = action.alert_message || plan.mitigation_strategy || 'Commander action pending...';
-
-        // Update KPI scorecards
         const elComm = document.getElementById('scorecard-commuters');
         if (elComm) elComm.textContent = (plan.affected_population || 10000).toLocaleString();
         const elTime = document.getElementById('scorecard-time');
         if (elTime) elTime.textContent = plan.estimated_delay_minutes || 30;
-
-        // Auto-hide after 10s
+        populateResourcePanel('completed', result);
         setTimeout(() => overlay.classList.remove('visible'), 10000);
 
       } else if (status === 'requires_operator_review') {
@@ -3927,6 +4249,7 @@
         document.getElementById('resultPopulation').textContent = '—';
         document.getElementById('resultPriority').textContent = result.reason ? 'REVIEW' : '—';
         document.getElementById('resultAction').textContent = result.reason || 'Signal requires manual operator review before dispatch.';
+        populateResourcePanel('requires_operator_review', result);
         setTimeout(() => overlay.classList.remove('visible'), 10000);
 
       } else if (status === 'no_incident') {
@@ -3939,6 +4262,7 @@
         document.getElementById('resultPopulation').textContent = '0';
         document.getElementById('resultPriority').textContent = 'NONE';
         document.getElementById('resultAction').textContent = result.message || 'Signal classified as false alarm. No crisis detected.';
+        populateResourcePanel('no_incident', result);
         setTimeout(() => overlay.classList.remove('visible'), 8000);
       }
     }
