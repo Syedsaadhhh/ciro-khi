@@ -279,55 +279,145 @@
       height: 100%
     }
 
+    /* ══ COLLAPSIBLE INCIDENT TRAY ══ */
     .crisis-strip {
       flex-shrink: 0;
       background: var(--bg2);
-      border-top: 2px solid var(--gm)
+      border-top: 2px solid var(--gm);
+      position: relative;
+      z-index: 15;
     }
-
+    /* Collapsed handle — always visible */
+    .cs-handle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 16px;
+      cursor: pointer;
+      background: var(--bg2);
+      user-select: none;
+    }
+    .cs-handle:active { background: var(--bg3); }
+    .cs-pills {
+      display: flex;
+      gap: 6px;
+      flex: 1;
+    }
+    .cs-pill {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 8px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 8px;
+      border: 1px solid;
+      letter-spacing: 0.5px;
+    }
+    .cs-pill.active  { background: #1E0406; color: #FF5566; border-color: #5A0C10; }
+    .cs-pill.review  { background: #1A0C00; color: #FF9933; border-color: #402000; }
+    .cs-pill.resolved{ background: #041208; color: #3DFFA0; border-color: #0A3818; }
+    .cs-chevron {
+      font-size: 14px;
+      color: var(--muted);
+      transition: transform .25s;
+      margin-left: 8px;
+    }
+    .crisis-strip.open .cs-chevron { transform: rotate(180deg); }
+    /* Expandable body */
+    .cs-body {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height .3s cubic-bezier(.4,0,.2,1);
+    }
+    .crisis-strip.open .cs-body {
+      max-height: 45vh; /* never more than 45% of viewport */
+      overflow-y: auto;
+    }
+    /* Tab row inside tray */
+    .cs-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg2);
+    }
+    .cs-tab {
+      flex: 1;
+      padding: 7px 4px;
+      text-align: center;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: var(--muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all .15s;
+    }
+    .cs-tab.on { color: var(--green); border-bottom-color: var(--green); }
+    /* Zone rows */
     .ccard {
       display: flex;
       align-items: center;
-      padding: 11px 18px;
+      padding: 10px 16px;
       border-bottom: 1px solid var(--border);
       gap: 12px;
       cursor: pointer;
-      transition: background .15s
+      transition: background .15s;
     }
-
-    .ccard:hover {
-      background: var(--bg3)
-    }
-
-    .ccard:last-child {
-      border-bottom: none
-    }
-
+    .ccard:hover { background: var(--bg3); }
+    .ccard:last-child { border-bottom: none; }
+    .ccard.cs-hidden { display: none; }
     .cdot {
       width: 10px;
       height: 10px;
       border-radius: 50%;
-      flex-shrink: 0
+      flex-shrink: 0;
     }
-
     .cname {
       font-size: 12px;
       font-weight: 700;
       color: var(--text);
-      letter-spacing: .5px
+      letter-spacing: .5px;
     }
-
     .csev {
       font-size: 9px;
       letter-spacing: 1.5px;
       margin-top: 2px;
-      font-weight: 700
+      font-weight: 700;
     }
+    .carr { font-size: 20px; color: var(--muted); }
 
-    .carr {
-      font-size: 20px;
-      color: var(--muted)
+    /* ══ DISPATCH PROGRESS BAR ══ */
+    #dispatchProgress {
+      display: none;
+      flex-direction: column;
+      gap: 4px;
+      padding: 7px 0 2px;
     }
+    .dp-track {
+      height: 3px;
+      background: #1A2436;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .dp-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #1A8FFF, #1BF075);
+      border-radius: 2px;
+      width: 0%;
+      transition: width 0.7s ease;
+    }
+    .dp-agents {
+      display: flex;
+      justify-content: space-between;
+    }
+    .dp-agent {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 7px;
+      letter-spacing: 0.5px;
+      color: var(--muted);
+      transition: color .3s;
+    }
+    .dp-agent.active { color: #1BF075; }
+    .dp-agent.done   { color: #3D4E62; }
 
     /* ══ SCREEN 2: TRACE ══ */
     .thinking-bar {
@@ -2451,6 +2541,16 @@
             <button id="dispatchBtn" onclick="launchDispatch()"
               style="background: rgba(27, 240, 117, 0.08); border: 1px solid #0A3818; border-radius: 6px; color: #1BF075; padding: 7px; font-family: 'Rajdhani', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 1px; cursor: pointer; text-align: center; transition: all 0.2s;">⚡
               LAUNCH DISPATCH</button>
+            <!-- Staged dispatch progress -->
+            <div id="dispatchProgress">
+              <div class="dp-track"><div class="dp-fill" id="dpFill"></div></div>
+              <div class="dp-agents">
+                <span class="dp-agent" id="dp-sifter">SIFTER</span>
+                <span class="dp-agent" id="dp-strategist">STRATEGIST</span>
+                <span class="dp-agent" id="dp-validator">VALIDATOR</span>
+                <span class="dp-agent" id="dp-commander">COMMANDER</span>
+              </div>
+            </div>
             <div id="ui-safety-label" style="text-align:center; font-family:'Share Tech Mono',monospace; font-size:9px; font-weight:bold; letter-spacing:1px; color:#3D4E62;">AWAITING SIGNAL INPUT</div>
             <div id="source-badges-container" class="source-badges"></div>
             
@@ -2708,30 +2808,51 @@
             </div>
           </div>
         </div>
-        <div class="crisis-strip">
-          <div class="ccard" id="card-iic" onclick="openModal('iic')">
-            <div class="cdot" id="dot-iic" style="background:var(--red);box-shadow:0 0 6px var(--red)"></div>
-            <div style="flex:1">
-              <div class="cname">I.I. CHUNDRIGAR RD</div>
-              <div class="csev" id="sev-iic" style="color:var(--red)">FLOOD SEVERITY: CRITICAL</div>
+        <!-- ══ COLLAPSIBLE INCIDENT TRAY ══ -->
+        <div class="crisis-strip" id="crisisTray">
+          <!-- Handle (always visible) -->
+          <div class="cs-handle" onclick="toggleTray()" id="trayHandle">
+            <div class="cs-pills">
+              <span class="cs-pill active" id="trayPillActive">🔴 2 ACTIVE</span>
+              <span class="cs-pill review" id="trayPillReview" style="display:none">⚠ 0 REVIEW</span>
+              <span class="cs-pill resolved" id="trayPillResolved">✓ 1 RESOLVED</span>
             </div>
-            <div class="carr">›</div>
+            <span class="cs-chevron" id="trayChevron">▾</span>
           </div>
-          <div class="ccard" id="card-univ" onclick="openModal('univ')">
-            <div class="cdot" id="dot-univ" style="background:var(--orange);box-shadow:0 0 5px var(--orange)"></div>
-            <div style="flex:1">
-              <div class="cname">UNIVERSITY ROAD</div>
-              <div class="csev" id="sev-univ" style="color:var(--orange)">FLOOD SEVERITY: HIGH</div>
+          <!-- Expandable body -->
+          <div class="cs-body" id="trayBody">
+            <!-- Tab row -->
+            <div class="cs-tabs">
+              <div class="cs-tab on" id="cstab-all" onclick="filterTray('all',this)">ALL</div>
+              <div class="cs-tab" id="cstab-active" onclick="filterTray('active',this)">ACTIVE</div>
+              <div class="cs-tab" id="cstab-review" onclick="filterTray('review',this)">REVIEW</div>
+              <div class="cs-tab" id="cstab-resolved" onclick="filterTray('resolved',this)">RESOLVED</div>
             </div>
-            <div class="carr">›</div>
-          </div>
-          <div class="ccard" id="card-dha" onclick="openModal('dha')">
-            <div class="cdot" id="dot-dha" style="background:var(--green);box-shadow:0 0 5px var(--green)"></div>
-            <div style="flex:1">
-              <div class="cname">DHA PHASE 6</div>
-              <div class="csev" id="sev-dha" style="color:var(--green)">STATUS: RESOLVED ✓</div>
+            <!-- Zone rows -->
+            <div class="ccard" id="card-iic" data-tray-status="active" onclick="openModal('iic')">
+              <div class="cdot" id="dot-iic" style="background:var(--red);box-shadow:0 0 6px var(--red)"></div>
+              <div style="flex:1">
+                <div class="cname">I.I. CHUNDRIGAR RD</div>
+                <div class="csev" id="sev-iic" style="color:var(--red)">FLOOD SEVERITY: CRITICAL</div>
+              </div>
+              <div class="carr">›</div>
             </div>
-            <div class="carr">›</div>
+            <div class="ccard" id="card-univ" data-tray-status="active" onclick="openModal('univ')">
+              <div class="cdot" id="dot-univ" style="background:var(--orange);box-shadow:0 0 5px var(--orange)"></div>
+              <div style="flex:1">
+                <div class="cname">UNIVERSITY ROAD</div>
+                <div class="csev" id="sev-univ" style="color:var(--orange)">FLOOD SEVERITY: HIGH</div>
+              </div>
+              <div class="carr">›</div>
+            </div>
+            <div class="ccard" id="card-dha" data-tray-status="resolved" onclick="openModal('dha')">
+              <div class="cdot" id="dot-dha" style="background:var(--green);box-shadow:0 0 5px var(--green)"></div>
+              <div style="flex:1">
+                <div class="cname">DHA PHASE 6</div>
+                <div class="csev" id="sev-dha" style="color:var(--green)">STATUS: RESOLVED ✓</div>
+              </div>
+              <div class="carr">›</div>
+            </div>
           </div>
         </div>
         <div class="bnav" id="nav1"></div>
@@ -3396,7 +3517,12 @@
       const sevEl = document.getElementById('sev-' + zone);
       if (dotEl) { dotEl.style.background = '#1BF075'; dotEl.style.boxShadow = '0 0 6px #1BF075'; }
       if (sevEl) { sevEl.textContent = 'STATUS: RESOLVED ✓'; sevEl.style.color = '#1BF075'; }
-      if (cardEl) { cardEl.classList.add('resolved-flash'); }
+      if (cardEl) {
+        cardEl.classList.add('resolved-flash');
+        cardEl.setAttribute('data-tray-status', 'resolved'); // sync tray tabs
+      }
+      // Refresh the handle summary pills
+      refreshTrayPills();
     }
 
     function incrementKPIs(zone) {
@@ -3419,7 +3545,43 @@
     // ═══════════════════════════════
     // ZOOM — properly working with SVG viewBox scaling
     // ═══════════════════════════════
-    let zoomLevel = 14;
+    // COLLAPSIBLE INCIDENT TRAY
+    // ═══════════════════════════════
+    function toggleTray() {
+      const tray = document.getElementById('crisisTray');
+      tray.classList.toggle('open');
+    }
+    function filterTray(filter, tabEl) {
+      document.querySelectorAll('.cs-tab').forEach(t => t.classList.remove('on'));
+      tabEl.classList.add('on');
+      document.querySelectorAll('#trayBody .ccard').forEach(card => {
+        const s = card.getAttribute('data-tray-status') || 'active';
+        const show = filter === 'all' || s === filter;
+        card.classList.toggle('cs-hidden', !show);
+      });
+    }
+    // Update tray pills dynamically (call after resolveZone)
+    function refreshTrayPills() {
+      const cards = document.querySelectorAll('#trayBody .ccard');
+      let active = 0, review = 0, resolved = 0;
+      cards.forEach(c => {
+        const s = c.getAttribute('data-tray-status') || 'active';
+        if (s === 'active') active++;
+        else if (s === 'review') review++;
+        else resolved++;
+      });
+      const pa = document.getElementById('trayPillActive');
+      const pr = document.getElementById('trayPillReview');
+      const ps = document.getElementById('trayPillResolved');
+      if (pa) pa.textContent = '🔴 ' + active + ' ACTIVE';
+      if (pr) { pr.textContent = '⚠ ' + review + ' REVIEW'; pr.style.display = review > 0 ? '' : 'none'; }
+      if (ps) ps.textContent = '✓ ' + resolved + ' RESOLVED';
+    }
+
+    // ═══════════════════════════════
+    // MAP ZOOM — drives real Google Map + SVG fallback
+    // ═══════════════════════════════
+    let zoomLevel = 12;
     const zoomViewBoxes = {
       10: '0 0 390 330', 11: '20 20 350 295', 12: '40 40 310 260',
       13: '60 55 270 225', 14: '0 0 390 330',
@@ -3429,13 +3591,18 @@
 
     function mapZoom(dir) {
       zoomLevel = Math.max(10, Math.min(20, zoomLevel + dir));
+      // ── Drive real Google Map ──
+      if (window.ciroMap) {
+        try { window.ciroMap.setZoom(window.ciroMap.getZoom() + dir); } catch(e){}
+      }
+      // ── SVG fallback (when map not loaded) ──
       const mapSvg = document.querySelector('#mapArea .map-svg');
       if (mapSvg) {
         const vb = zoomViewBoxes[zoomLevel] || '0 0 390 330';
         mapSvg.setAttribute('viewBox', vb);
         mapSvg.style.transition = 'all .25s ease';
       }
-      // Update badge
+      // Update zoom badge
       const badge = document.getElementById('zoomBadge');
       if (badge) {
         badge.textContent = 'ZOOM ' + zoomLevel;
@@ -3444,7 +3611,7 @@
         clearTimeout(badge._t);
         badge._t = setTimeout(() => { badge.style.opacity = '0'; setTimeout(() => badge.style.display = 'none', 300); }, 1400);
       }
-      // Visual feedback on buttons
+      // Button flash feedback
       const btnId = dir > 0 ? 'zoomIn' : 'zoomOut';
       const btn = document.getElementById(btnId);
       if (btn) {
@@ -3454,19 +3621,23 @@
       }
     }
 
-    // SATELLITE TOGGLE
+    // SATELLITE TOGGLE — drives real Google Map + CSS fallback
     let satActive = false;
     function toggleSat() {
       satActive = !satActive;
       document.getElementById('satBtn').classList.toggle('active-sat', satActive);
+      // ── Drive real Google Map ──
+      if (window.ciroMap) {
+        try {
+          window.ciroMap.setMapTypeId(satActive ? 'satellite' : 'roadmap');
+        } catch(e){}
+      }
+      // ── CSS fallback tint for SVG map ──
       const mapSvg = document.querySelector('#mapArea .map-svg');
-      // Toggle satellite-like dark green tint on entire SVG
       if (mapSvg) {
-        if (satActive) {
-          mapSvg.style.filter = 'saturate(0.4) brightness(0.7) sepia(0.3) hue-rotate(90deg)';
-        } else {
-          mapSvg.style.filter = '';
-        }
+        mapSvg.style.filter = satActive
+          ? 'saturate(0.4) brightness(0.7) sepia(0.3) hue-rotate(90deg)'
+          : '';
       }
       const area = document.getElementById('mapArea');
       let tag = area.querySelector('.sat-feedback');
@@ -3547,7 +3718,7 @@
         googleCiroMap = new google.maps.Map(document.getElementById("live-ciro-map"), {
           zoom: 12,
           center: karachiBaseAxis,
-          disableDefaultUI: true, // Eliminates standard consumer tools for a premium war-room dashboard look
+          disableDefaultUI: true, // War-room dashboard: no default consumer controls
           styles: [
             { "elementType": "geometry", "stylers": [{ "color": "#090B0E" }] },
             { "elementType": "labels.text.stroke", "stylers": [{ "color": "#090B0E" }] },
@@ -3558,6 +3729,12 @@
             { "featureType": "water", "elementType": "geometry", "stylers": [{ "color": "#050C11" }] }
           ]
         });
+
+        // ── Expose to window so mapZoom() / toggleSat() can drive the real map ──
+        window.ciroMap = googleCiroMap;
+        window.googleCiroMap = googleCiroMap; // keep legacy alias
+        // Sync zoom level tracker with actual map zoom
+        zoomLevel = googleCiroMap.getZoom();
 
         // Inject coordinate markers matching our dashboard crisis cards
         injectCrisisPins("iic", 24.8510, 67.0098, "#FF2233");  // I.I. Chundrigar Road
@@ -4018,35 +4195,120 @@
       }, 3500);
     }
 
-    // Launch Dispatch logic
+    // ═══════════════════════════════
+    // DISPATCH PROGRESS STEPPER
+    // ═══════════════════════════════
+    const DP_AGENTS = ['dp-sifter','dp-strategist','dp-validator','dp-commander'];
+    const DP_FILLS  = [25, 50, 75, 100];
+    let _dpTimers = [];
+
+    function startDispatchProgress() {
+      // Clear any previous timers
+      _dpTimers.forEach(t => clearTimeout(t));
+      _dpTimers = [];
+      const prog = document.getElementById('dispatchProgress');
+      const fill = document.getElementById('dpFill');
+      if (!prog) return;
+      prog.style.display = 'flex';
+      fill.style.width = '0%';
+      // Reset agent labels
+      DP_AGENTS.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) { el.classList.remove('active','done'); }
+      });
+      // Stagger each agent step: 0, 1.2s, 2.8s, 4.5s
+      const delays = [0, 1200, 2800, 4500];
+      delays.forEach((delay, i) => {
+        _dpTimers.push(setTimeout(() => {
+          // Mark previous done
+          if (i > 0) {
+            const prev = document.getElementById(DP_AGENTS[i-1]);
+            if (prev) { prev.classList.remove('active'); prev.classList.add('done'); }
+          }
+          const cur = document.getElementById(DP_AGENTS[i]);
+          if (cur) cur.classList.add('active');
+          if (fill) fill.style.width = DP_FILLS[i] + '%';
+        }, delay));
+      });
+    }
+
+    function stopDispatchProgress(success) {
+      _dpTimers.forEach(t => clearTimeout(t));
+      _dpTimers = [];
+      const prog = document.getElementById('dispatchProgress');
+      const fill = document.getElementById('dpFill');
+      if (!prog) return;
+      // Mark all done
+      DP_AGENTS.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) { el.classList.remove('active'); el.classList.add('done'); }
+      });
+      if (fill) fill.style.width = '100%';
+      setTimeout(() => { if (prog) prog.style.display = 'none'; }, 1200);
+    }
+
+    // ═══════════════════════════════
+    // LAUNCH DISPATCH — with 8s timeout fallback
+    // ═══════════════════════════════
     async function launchDispatch() {
       const type = window.currentScenarioType || 1;
-      if (window.ciroOfflineMode) {
-        runOfflineSimulation(type);
-        return;
-      }
 
       const btn = document.getElementById('dispatchBtn');
-      const originalText = btn.textContent;
-      btn.textContent = "⚡ DISPATCHING...";
-      btn.style.color = "#FF9933";
-      btn.style.borderColor = "#402000";
+      const originalText = btn.innerHTML;
+      btn.textContent = '⚡ DISPATCHING...';
+      btn.style.color = '#FF9933';
+      btn.style.borderColor = '#402000';
+      btn.disabled = true;
 
-      const textVal = document.getElementById('rawSignalInput').value;
-      const precipVal = parseFloat(document.getElementById('precipInput').value) || 0;
-      const congVal = parseInt(document.getElementById('congestionInput').value) || 5;
-
-      const payload = {
-        location: "University Road",
-        social_posts: textVal ? [textVal] : null,
-        rainfall_mm: precipVal,
-        congestion_level: congVal
-      };
+      // Always show staged progress immediately
+      startDispatchProgress();
 
       const overlay = document.getElementById('resultOverlay');
       overlay.classList.remove('visible','confirmed','review','rejected');
       const badges = document.getElementById('source-badges-container');
       if (badges) badges.innerHTML = '';
+
+      const resetBtn = () => {
+        btn.innerHTML = originalText;
+        btn.style.color = '#1BF075';
+        btn.style.borderColor = '#0A3818';
+        btn.disabled = false;
+      };
+
+      // If already offline, skip fetch entirely
+      if (window.ciroOfflineMode) {
+        // Staged progress runs; offline sim fires after 4.8s
+        setTimeout(() => {
+          stopDispatchProgress(true);
+          runOfflineSimulation(type);
+          resetBtn();
+        }, 4800);
+        return;
+      }
+
+      // Build payload
+      const textVal = document.getElementById('rawSignalInput').value;
+      const precipVal = parseFloat(document.getElementById('precipInput').value) || 0;
+      const congVal   = parseInt(document.getElementById('congestionInput').value) || 5;
+      const payload = {
+        location: 'University Road',
+        social_posts: textVal ? [textVal] : null,
+        rainfall_mm: precipVal,
+        congestion_level: congVal
+      };
+
+      // Race: real fetch vs 8-second timeout
+      let fellBack = false;
+      const timeoutId = setTimeout(() => {
+        if (fellBack) return;
+        fellBack = true;
+        // Show fallback label
+        const lbl = document.getElementById('ui-safety-label');
+        if (lbl) { lbl.textContent = '⚠ LIVE API DELAY — FALLBACK DEMO MODE'; lbl.style.color = '#FF9933'; }
+        stopDispatchProgress(false);
+        runOfflineSimulation(type);
+        resetBtn();
+      }, 8000);
 
       try {
         const resp = await fetch(`http://${backendHost}/simulate`, {
@@ -4054,22 +4316,27 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         });
+        if (fellBack) return; // timeout already fired
+        clearTimeout(timeoutId);
         const data = await resp.json();
-        btn.textContent = "✓ DISPATCH COMPLETE";
-        btn.style.color = "#1BF075";
-        btn.style.borderColor = "#0A3818";
-
+        stopDispatchProgress(true);
+        btn.textContent = '✓ DISPATCH COMPLETE';
+        btn.style.color = '#1BF075';
+        btn.style.borderColor = '#0A3818';
+        btn.disabled = false;
         processDispatchResult(data);
+        setTimeout(resetBtn, 4000);
       } catch (e) {
-        console.error("Dispatch failed, falling back to offline sifter simulation:", e);
-        // Fall back gracefully in real time if network drops unexpectedly
+        if (fellBack) return;
+        clearTimeout(timeoutId);
+        console.warn('Dispatch fetch failed, falling back:', e);
+        fellBack = true;
+        const lbl = document.getElementById('ui-safety-label');
+        if (lbl) { lbl.textContent = '⚠ LIVE API DELAY — FALLBACK DEMO MODE'; lbl.style.color = '#FF9933'; }
+        stopDispatchProgress(false);
         runOfflineSimulation(type);
+        resetBtn();
       }
-      setTimeout(() => {
-        btn.textContent = originalText;
-        btn.style.color = "#1BF075";
-        btn.style.borderColor = "#0A3818";
-      }, 4000);
     }
 
     /* ── Resource Panel controls ── */
