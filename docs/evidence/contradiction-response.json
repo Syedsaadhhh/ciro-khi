@@ -1,0 +1,99 @@
+{
+  "status": "requires_operator_review",
+  "session_id": "sess-20260520-040100-malir",
+  "timestamp": "2026-05-20T04:01:09Z",
+  "pipeline_duration_ms": 3844,
+  "fallback_mode": false,
+  "incident": {
+    "incident_id": "INC-2026-0520-0005",
+    "event_type": "flood",
+    "location": "Malir Halt, Karachi",
+    "coordinates": {
+      "lat": 24.8866,
+      "lng": 67.1491
+    },
+    "severity": 4.0,
+    "priority": "MEDIUM",
+    "confidence": 0.35,
+    "estimated_affected_population": null,
+    "estimated_delay_minutes": null,
+    "raw_signals": {
+      "weather": {
+        "source": "simulated_weather_api",
+        "rainfall_mm": 0,
+        "classification": "clear",
+        "data_quality": "nominal"
+      },
+      "traffic": {
+        "source": "simulated_traffic_api",
+        "congestion_level": 2,
+        "classification": "normal_flow",
+        "data_quality": "nominal"
+      },
+      "social": {
+        "source": "user_input_roman_urdu",
+        "posts_analyzed": 2,
+        "flood_signals_detected": 6,
+        "sentiment_score": 0.93,
+        "language": "roman_urdu",
+        "parsed_intent": "severe_flood_emergency",
+        "original_text": "malir mein sab kuch doob gaya hai ghar mein pani aa gaya bachon ko bahar nikalo"
+      }
+    }
+  },
+  "plan": {
+    "generated_by": "StrategistAgent",
+    "strategy": "hold_for_contradiction_resolution",
+    "cross_validation": {
+      "weather_confirms_social": false,
+      "traffic_confirms_social": false,
+      "telemetry_agreement": "contradictory"
+    },
+    "contradiction_analysis": {
+      "social_vs_weather": "CONFLICT — Social reports severe flooding; weather shows 0mm rainfall and clear skies",
+      "social_vs_traffic": "CONFLICT — Social reports catastrophic conditions; traffic shows normal flow (2/10)",
+      "possible_explanations": [
+        "Burst water main or sewage overflow (non-weather flooding)",
+        "Delayed/outdated social post from a previous event",
+        "Deliberate misinformation or panic-spreading",
+        "Localized drainage failure not captured by broad telemetry"
+      ]
+    },
+    "alternative_routes": [],
+    "resource_recommendations": [
+      "Dispatch ground verification team to Malir Halt before committing resources"
+    ]
+  },
+  "action": {
+    "generated_by": "CommanderAgent",
+    "alert_message": null,
+    "channels": ["dashboard"],
+    "geofence": null,
+    "emergency_ticket": {
+      "ticket_id": "EMR-2026-0520-0005",
+      "dispatched_to": [],
+      "dispatch_mode": "simulated",
+      "requires_operator_approval": true,
+      "hold_reason": "Data contradiction detected. Awaiting operator review and ground verification."
+    }
+  },
+  "safety_validation": {
+    "validated_by": "ValidatorGate",
+    "validated": false,
+    "status": "requires_operator_review",
+    "confidence_score": 0.35,
+    "checks_passed": [
+      "social_signal_strength >= 0.7"
+    ],
+    "checks_failed": [
+      "weather_telemetry_contradicts_social (0mm rainfall vs severe_flood_report)",
+      "traffic_telemetry_contradicts_social (congestion 2/10 vs catastrophic_conditions)",
+      "cross_source_agreement_below_threshold",
+      "contradiction_detected_between_sources"
+    ],
+    "escalation_required": true,
+    "escalation_reason": "Strong social signal directly contradicts both weather and traffic telemetry. Cannot confirm or reject without human investigation. Possible non-weather flooding (e.g., water main break) or misinformation.",
+    "contradiction_flag": true,
+    "notes": "ValidatorGate detects a clear contradiction: social urgency is very high but all telemetry sources show normal conditions. This is escalated to operator for ground-truth verification."
+  }
+}

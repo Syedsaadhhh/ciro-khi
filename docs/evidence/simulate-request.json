@@ -1,0 +1,14 @@
+{
+  "location": "University Road",
+  "social_posts": [
+    "pani bhar gaya gari phas gayi university road emergency"
+  ],
+  "rainfall_mm": 50,
+  "congestion_level": 9,
+  "_meta": {
+    "description": "Sample POST /simulate request body for a confirmed flood scenario on University Road, Karachi.",
+    "endpoint": "POST /simulate",
+    "content_type": "application/json",
+    "note": "social_posts accepts Roman Urdu crisis signals. rainfall_mm and congestion_level are numeric telemetry inputs."
+  }
+}

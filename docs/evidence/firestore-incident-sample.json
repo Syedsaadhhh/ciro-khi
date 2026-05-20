@@ -1,0 +1,94 @@
+{
+  "_firestore_path": "projects/ciro-karachi/databases/cirokhi/documents/incidents/INC-2026-0520-0001",
+  "_collection": "incidents",
+  "_document_id": "INC-2026-0520-0001",
+  "incident_id": "INC-2026-0520-0001",
+  "session_id": "sess-20260520-023000-univ-road",
+  "event_type": "flood",
+  "location": "University Road, Gulshan-e-Iqbal, Karachi",
+  "coordinates": {
+    "lat": 24.9180,
+    "lng": 67.0903
+  },
+  "severity": 8.8,
+  "priority": "CRITICAL",
+  "validated": true,
+  "confidence": 0.96,
+  "fallback_mode": false,
+  "raw_signals": {
+    "weather": {
+      "source": "simulated_weather_api",
+      "rainfall_mm": 50,
+      "classification": "extreme"
+    },
+    "traffic": {
+      "source": "simulated_traffic_api",
+      "congestion_level": 9,
+      "classification": "severe_gridlock"
+    },
+    "social": {
+      "source": "user_input_roman_urdu",
+      "posts_analyzed": 1,
+      "flood_signals_detected": 4,
+      "sentiment_score": 0.85,
+      "original_text": "pani bhar gaya gari phas gayi university road emergency"
+    }
+  },
+  "safety_validation": {
+    "validated_by": "ValidatorGate",
+    "validated": true,
+    "status": "confirmed",
+    "confidence_score": 0.96,
+    "checks_passed": [
+      "social_signal_strength >= 0.7",
+      "weather_telemetry_confirms_event",
+      "traffic_telemetry_confirms_event",
+      "no_contradictions_detected",
+      "severity_threshold_met"
+    ],
+    "checks_failed": [],
+    "escalation_required": false
+  },
+  "command_package": {
+    "alert_message": "⚠️ CRITICAL FLOOD ALERT: University Road, Gulshan-e-Iqbal is severely flooded. Water level rising. Avoid area. Use Shahrah-e-Faisal bypass. Emergency services dispatched.",
+    "channels": ["sms", "app_push", "dashboard", "public_pa"],
+    "geofence": {
+      "center": { "lat": 24.9180, "lng": 67.0903 },
+      "radius_km": 2.5,
+      "restriction": "avoid_zone"
+    },
+    "alternative_routes": [
+      {
+        "name": "Shahrah-e-Faisal Bypass",
+        "estimated_delay_minutes": 25
+      },
+      {
+        "name": "Rashid Minhas Road Detour",
+        "estimated_delay_minutes": 35
+      }
+    ],
+    "emergency_ticket": {
+      "ticket_id": "EMR-2026-0520-0001",
+      "dispatched_to": ["PDMA_Sindh", "KMC_Drainage", "Rescue_1122"],
+      "dispatch_mode": "simulated",
+      "requires_operator_approval": true
+    },
+    "resource_recommendations": [
+      "Deploy 3 water rescue units to University Road",
+      "Position 2 ambulances at Safoora Chowrangi staging area",
+      "Activate KMC drainage pumps at Nagan Chowrangi junction"
+    ]
+  },
+  "estimated_affected_population": 14500,
+  "estimated_delay_minutes": 90,
+  "timestamp": "2026-05-20T02:30:12Z",
+  "created_at": "2026-05-20T02:30:12Z",
+  "updated_at": "2026-05-20T02:30:12Z",
+  "pipeline_duration_ms": 4812,
+  "agent_versions": {
+    "SifterAgent": "2.1.0",
+    "StrategistAgent": "2.1.0",
+    "ValidatorGate": "2.1.0",
+    "CommanderAgent": "2.1.0"
+  }
+}

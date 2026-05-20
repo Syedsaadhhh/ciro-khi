@@ -1,0 +1,26 @@
+{
+  "status": "ok",
+  "service": "ciro-fastapi",
+  "system": "Karachi Flood Command Center",
+  "version": "2.1.0",
+  "firestore_database": "cirokhi",
+  "websocket": "enabled",
+  "mode": "simulation_with_live_gemini_fallback",
+  "agents": [
+    "SifterAgent",
+    "StrategistAgent",
+    "ValidatorGate",
+    "CommanderAgent"
+  ],
+  "endpoints": [
+    "/health",
+    "/simulate",
+    "/incidents",
+    "/alerts",
+    "/traces",
+    "/live-status",
+    "/ws/live-trace"
+  ],
+  "uptime_seconds": 14832,
+  "timestamp": "2026-05-20T02:30:00Z"
+}

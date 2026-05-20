@@ -1,0 +1,51 @@
+[2026-05-20T02:30:00.000Z] [Orchestrator] ══════════════════════════════════════════════════════════
+[2026-05-20T02:30:00.000Z] [Orchestrator] Workflow started for University Road
+[2026-05-20T02:30:00.001Z] [Orchestrator] Session: sess-20260520-023000-univ-road
+[2026-05-20T02:30:00.002Z] [Orchestrator] Mode: simulation_with_live_gemini_fallback
+[2026-05-20T02:30:00.003Z] [Orchestrator] Firestore DB: cirokhi
+[2026-05-20T02:30:00.010Z] [Orchestrator] ── Stage 1: SifterAgent ──────────────────────────────────
+[2026-05-20T02:30:00.450Z] [SifterAgent]  Received input signal for location: University Road
+[2026-05-20T02:30:00.812Z] [SifterAgent]  Parsed Roman Urdu crisis signal: 'pani bhar gaya gari phas gayi university road emergency'
+[2026-05-20T02:30:01.034Z] [SifterAgent]  Detected language: Roman Urdu → intent: flood_emergency
+[2026-05-20T02:30:01.502Z] [SifterAgent]  Weather: extreme rainfall (50mm) — source: simulated_weather_api
+[2026-05-20T02:30:01.891Z] [SifterAgent]  Traffic: congestion level 9/10 (severe_gridlock) — source: simulated_traffic_api
+[2026-05-20T02:30:02.305Z] [SifterAgent]  Social: 4 flood signals detected (sentiment score: 0.85)
+[2026-05-20T02:30:02.410Z] [SifterAgent]  Computed initial severity: 8.8 | confidence: 0.92
+[2026-05-20T02:30:02.412Z] [SifterAgent]  ✓ Signal package assembled. Forwarding to StrategistAgent.
+[2026-05-20T02:30:02.500Z] [Orchestrator] ── Stage 2: StrategistAgent ──────────────────────────────
+[2026-05-20T02:30:02.890Z] [StrategistAgent]  Received signal package from SifterAgent
+[2026-05-20T02:30:03.120Z] [StrategistAgent]  Cross-validating with fresh data sources...
+[2026-05-20T02:30:03.345Z] [StrategistAgent]  Weather ↔ Social: CONFIRMS (50mm + flood_emergency)
+[2026-05-20T02:30:03.412Z] [StrategistAgent]  Traffic ↔ Social: CONFIRMS (9/10 + flood_emergency)
+[2026-05-20T02:30:03.501Z] [StrategistAgent]  Telemetry agreement: STRONG — all 3 sources aligned
+[2026-05-20T02:30:03.780Z] [StrategistAgent]  Estimated impact: 14,500 affected, delay 90min
+[2026-05-20T02:30:03.980Z] [StrategistAgent]  Generated 2 alternative routes:
+[2026-05-20T02:30:03.981Z] [StrategistAgent]    → Route 1: Shahrah-e-Faisal Bypass (est. 25min delay)
+[2026-05-20T02:30:03.982Z] [StrategistAgent]    → Route 2: Rashid Minhas Road Detour (est. 35min delay)
+[2026-05-20T02:30:04.100Z] [StrategistAgent]  Resource recommendations: 3 rescue units, 2 ambulances, drainage pumps
+[2026-05-20T02:30:04.102Z] [StrategistAgent]  ✓ Strategic plan generated. Forwarding to ValidatorGate.
+[2026-05-20T02:30:04.200Z] [Orchestrator] ── Stage 3: ValidatorGate ────────────────────────────────
+[2026-05-20T02:30:04.350Z] [ValidatorGate]  Running structural validation checks...
+[2026-05-20T02:30:04.401Z] [ValidatorGate]  Check: social_signal_strength >= 0.7 → PASS (0.85)
+[2026-05-20T02:30:04.412Z] [ValidatorGate]  Check: weather_telemetry_confirms → PASS (50mm extreme)
+[2026-05-20T02:30:04.420Z] [ValidatorGate]  Check: traffic_telemetry_confirms → PASS (9/10 gridlock)
+[2026-05-20T02:30:04.425Z] [ValidatorGate]  Check: no_contradictions → PASS
+[2026-05-20T02:30:04.430Z] [ValidatorGate]  Check: severity_threshold_met → PASS (8.8 >= 5.0)
+[2026-05-20T02:30:04.440Z] [ValidatorGate]  Strong signal and telemetry match. Validation passed.
+[2026-05-20T02:30:04.445Z] [ValidatorGate]  Final confidence: 0.96 (upgraded from 0.92 — full telemetry agreement)
+[2026-05-20T02:30:04.450Z] [ValidatorGate]  ✓ VALIDATED. Status: confirmed. Forwarding to CommanderAgent.
+[2026-05-20T02:30:04.500Z] [Orchestrator] ── Stage 4: CommanderAgent ───────────────────────────────
+[2026-05-20T02:30:04.650Z] [CommanderAgent]  Generating emergency actions for confirmed incident INC-2026-0520-0001
+[2026-05-20T02:30:04.780Z] [CommanderAgent]  Alert created: CRITICAL via sms, app_push, dashboard, public_pa
+[2026-05-20T02:30:04.810Z] [CommanderAgent]  Alert message: "⚠️ CRITICAL FLOOD ALERT: University Road..."
+[2026-05-20T02:30:04.850Z] [CommanderAgent]  Geofence zone: 2.5km radius around University Road (24.918, 67.090)
+[2026-05-20T02:30:04.890Z] [CommanderAgent]  Emergency ticket dispatched: EMR-2026-0520-0001
+[2026-05-20T02:30:04.891Z] [CommanderAgent]  Dispatch targets: PDMA_Sindh, KMC_Drainage, Rescue_1122
+[2026-05-20T02:30:04.892Z] [CommanderAgent]  ⚠ Dispatch mode: SIMULATED — requires operator approval
+[2026-05-20T02:30:04.900Z] [CommanderAgent]  ✓ Command package assembled and stored to Firestore.
+[2026-05-20T02:30:04.910Z] [Orchestrator] ── Pipeline Complete ─────────────────────────────────────
+[2026-05-20T02:30:04.911Z] [Orchestrator] Incident INC-2026-0520-0001 stored to Firestore (cirokhi)
+[2026-05-20T02:30:04.912Z] [Orchestrator] Reasoning trace stored to /reasoning_traces/sess-20260520-023000-univ-road
+[2026-05-20T02:30:04.913Z] [Orchestrator] Pipeline duration: 4812ms
+[2026-05-20T02:30:04.914Z] [Orchestrator] Workflow pipeline complete.
+[2026-05-20T02:30:04.915Z] [Orchestrator] ══════════════════════════════════════════════════════════

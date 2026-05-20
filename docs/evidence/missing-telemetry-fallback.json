@@ -1,0 +1,117 @@
+{
+  "status": "requires_operator_review",
+  "session_id": "sess-20260520-034500-nazimabad",
+  "timestamp": "2026-05-20T03:45:33Z",
+  "pipeline_duration_ms": 5602,
+  "fallback_mode": true,
+  "degraded_services": {
+    "weather_api": {
+      "status": "unavailable",
+      "http_code": 503,
+      "error": "Service Unavailable — upstream weather provider returned 503",
+      "fallback_action": "Proceeding with social and traffic signals only"
+    },
+    "traffic_api": {
+      "status": "available",
+      "data_quality": "nominal"
+    }
+  },
+  "incident": {
+    "incident_id": "INC-2026-0520-0004",
+    "event_type": "flood",
+    "location": "Nazimabad No. 3, Karachi",
+    "coordinates": {
+      "lat": 24.9138,
+      "lng": 67.0332
+    },
+    "severity": 6.5,
+    "priority": "HIGH",
+    "confidence": 0.68,
+    "confidence_note": "Confidence reduced from estimated 0.88 to 0.68 due to missing weather telemetry.",
+    "estimated_affected_population": 8200,
+    "estimated_delay_minutes": 55,
+    "raw_signals": {
+      "weather": {
+        "source": "simulated_weather_api",
+        "rainfall_mm": null,
+        "classification": "unavailable",
+        "data_quality": "degraded",
+        "error": "503 Service Unavailable"
+      },
+      "traffic": {
+        "source": "simulated_traffic_api",
+        "congestion_level": 8,
+        "classification": "heavy_congestion",
+        "data_quality": "nominal"
+      },
+      "social": {
+        "source": "user_input_roman_urdu",
+        "posts_analyzed": 3,
+        "flood_signals_detected": 5,
+        "sentiment_score": 0.91,
+        "language": "roman_urdu",
+        "parsed_intent": "flood_emergency",
+        "original_text": "nazimabad mein pani ghutno tak aa gaya hai sarak band hai ambulance nahi aa rahi"
+      }
+    }
+  },
+  "plan": {
+    "generated_by": "StrategistAgent",
+    "strategy": "partial_response_pending_confirmation",
+    "cross_validation": {
+      "weather_confirms_social": null,
+      "traffic_confirms_social": true,
+      "telemetry_agreement": "partial_degraded"
+    },
+    "alternative_routes": [
+      {
+        "name": "Gulbahar Flyover Route",
+        "description": "Bypass via Gulbahar No. 2, use flyover to reach Liaquatabad",
+        "estimated_delay_minutes": 20,
+        "status": "recommended"
+      }
+    ],
+    "resource_recommendations": [
+      "Stage 2 water rescue units at Nazimabad Chowrangi (pending operator approval)",
+      "Pre-position 1 ambulance at Hyderi Market staging point"
+    ],
+    "strategist_note": "Weather data unavailable. Traffic confirms severe congestion. Social signal is very strong. Recommending cautious response pending operator confirmation."
+  },
+  "action": {
+    "generated_by": "CommanderAgent",
+    "alert_message": "⚠️ POTENTIAL FLOOD — Nazimabad No. 3: Strong social reports of knee-deep water, road closures. Traffic confirms heavy congestion. Weather data temporarily unavailable. Awaiting operator confirmation before full dispatch.",
+    "channels": ["dashboard"],
+    "geofence": {
+      "center": {
+        "lat": 24.9138,
+        "lng": 67.0332
+      },
+      "radius_km": 1.5,
+      "restriction": "caution_zone"
+    },
+    "emergency_ticket": {
+      "ticket_id": "EMR-2026-0520-0004",
+      "dispatched_to": ["PDMA_Sindh"],
+      "dispatch_mode": "simulated",
+      "requires_operator_approval": true,
+      "hold_reason": "Missing weather telemetry — operator must confirm before full resource dispatch."
+    }
+  },
+  "safety_validation": {
+    "validated_by": "ValidatorGate",
+    "validated": false,
+    "status": "requires_operator_review",
+    "confidence_score": 0.68,
+    "checks_passed": [
+      "social_signal_strength >= 0.7",
+      "traffic_telemetry_confirms_event"
+    ],
+    "checks_failed": [
+      "weather_telemetry_unavailable (503 — cannot confirm or deny)",
+      "full_cross_source_validation_incomplete"
+    ],
+    "escalation_required": true,
+    "escalation_reason": "Weather API returned 503. Cannot complete full three-source validation. Social and traffic data suggest a real event. Escalating to human operator for confirmation.",
+    "notes": "Fallback mode active. ValidatorGate cannot fully validate without weather data but social + traffic alignment is strong. Conservative escalation to operator."
+  }
+}

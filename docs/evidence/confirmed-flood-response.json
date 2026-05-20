@@ -1,0 +1,108 @@
+{
+  "status": "confirmed",
+  "session_id": "sess-20260520-023000-univ-road",
+  "timestamp": "2026-05-20T02:30:12Z",
+  "pipeline_duration_ms": 4812,
+  "fallback_mode": false,
+  "incident": {
+    "incident_id": "INC-2026-0520-0001",
+    "event_type": "flood",
+    "location": "University Road, Gulshan-e-Iqbal, Karachi",
+    "coordinates": {
+      "lat": 24.9180,
+      "lng": 67.0903
+    },
+    "severity": 8.8,
+    "priority": "CRITICAL",
+    "confidence": 0.96,
+    "estimated_affected_population": 14500,
+    "estimated_delay_minutes": 90,
+    "raw_signals": {
+      "weather": {
+        "source": "simulated_weather_api",
+        "rainfall_mm": 50,
+        "classification": "extreme",
+        "data_quality": "nominal"
+      },
+      "traffic": {
+        "source": "simulated_traffic_api",
+        "congestion_level": 9,
+        "classification": "severe_gridlock",
+        "data_quality": "nominal"
+      },
+      "social": {
+        "source": "user_input_roman_urdu",
+        "posts_analyzed": 1,
+        "flood_signals_detected": 4,
+        "sentiment_score": 0.85,
+        "language": "roman_urdu",
+        "parsed_intent": "flood_emergency",
+        "original_text": "pani bhar gaya gari phas gayi university road emergency"
+      }
+    }
+  },
+  "plan": {
+    "generated_by": "StrategistAgent",
+    "strategy": "full_emergency_response",
+    "cross_validation": {
+      "weather_confirms_social": true,
+      "traffic_confirms_social": true,
+      "telemetry_agreement": "strong"
+    },
+    "alternative_routes": [
+      {
+        "name": "Shahrah-e-Faisal Bypass",
+        "description": "Divert via Shahrah-e-Faisal to NIPA Chowrangi, then reconnect at Safoora Chowrangi",
+        "estimated_delay_minutes": 25,
+        "status": "recommended"
+      },
+      {
+        "name": "Rashid Minhas Road Detour",
+        "description": "Use Rashid Minhas Road northbound to Millennium Mall, then cut through to Gulshan Chowrangi",
+        "estimated_delay_minutes": 35,
+        "status": "available"
+      }
+    ],
+    "resource_recommendations": [
+      "Deploy 3 water rescue units to University Road (24.918, 67.090)",
+      "Position 2 ambulances at Safoora Chowrangi staging area",
+      "Activate KMC drainage pumps at Nagan Chowrangi junction"
+    ]
+  },
+  "action": {
+    "generated_by": "CommanderAgent",
+    "alert_message": "⚠️ CRITICAL FLOOD ALERT: University Road, Gulshan-e-Iqbal is severely flooded. Water level rising. Avoid area. Use Shahrah-e-Faisal bypass. Emergency services dispatched.",
+    "channels": ["sms", "app_push", "dashboard", "public_pa"],
+    "geofence": {
+      "center": {
+        "lat": 24.9180,
+        "lng": 67.0903
+      },
+      "radius_km": 2.5,
+      "restriction": "avoid_zone"
+    },
+    "emergency_ticket": {
+      "ticket_id": "EMR-2026-0520-0001",
+      "dispatched_to": ["PDMA_Sindh", "KMC_Drainage", "Rescue_1122"],
+      "dispatch_mode": "simulated",
+      "requires_operator_approval": true,
+      "note": "All dispatch is simulated and requires operator approval before real-world action."
+    }
+  },
+  "safety_validation": {
+    "validated_by": "ValidatorGate",
+    "validated": true,
+    "status": "confirmed",
+    "confidence_score": 0.96,
+    "checks_passed": [
+      "social_signal_strength >= 0.7",
+      "weather_telemetry_confirms_event",
+      "traffic_telemetry_confirms_event",
+      "no_contradictions_detected",
+      "severity_threshold_met"
+    ],
+    "checks_failed": [],
+    "escalation_required": false,
+    "notes": "All three data sources (social, weather, traffic) agree on flood event. High confidence confirmation."
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "status": "operational",
+  "timestamp": "2026-05-20T02:36:01.019708",
+  "system": "Karachi Flood Command Center",
+  "agents": [
+    "sifter",
+    "strategist",
+    "validator",
+    "commander"
+  ],
+  "store": {
+    "incidents": 0,
+    "reasoning_traces": 0,
+    "alerts": 0,
+    "simulations": 0,
+    "agent_logs": 0,
+    "live_status": 0,
+    "simulation_mode": false
+  },
+  "simulation_mode": false,
+  "websocket_connections": 0
+}

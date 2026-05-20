@@ -1,0 +1,13 @@
+fastapi
+uvicorn[standard]
+websockets
+pydantic
+pydantic-settings
+httpx
+google-genai
+google-cloud-firestore
+firebase-admin
+python-dotenv
+tenacity
+structlog
+python-dateutil

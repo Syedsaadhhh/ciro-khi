@@ -1,0 +1,161 @@
+{
+  "status": "confirmed",
+  "session_id": "sess-20260520-050000-multi-crisis",
+  "timestamp": "2026-05-20T05:00:22Z",
+  "pipeline_duration_ms": 7204,
+  "fallback_mode": false,
+  "multi_crisis": true,
+  "total_incidents": 2,
+  "prioritized_incidents": [
+    {
+      "rank": 1,
+      "incident": {
+        "incident_id": "INC-2026-0520-0006",
+        "event_type": "flood",
+        "location": "University Road, Gulshan-e-Iqbal, Karachi",
+        "coordinates": {
+          "lat": 24.9180,
+          "lng": 67.0903
+        },
+        "severity": 9.1,
+        "priority": "CRITICAL",
+        "confidence": 0.94,
+        "estimated_affected_population": 18000,
+        "estimated_delay_minutes": 120,
+        "raw_signals": {
+          "weather": {
+            "source": "simulated_weather_api",
+            "rainfall_mm": 65,
+            "classification": "extreme"
+          },
+          "traffic": {
+            "source": "simulated_traffic_api",
+            "congestion_level": 10,
+            "classification": "total_gridlock"
+          },
+          "social": {
+            "posts_analyzed": 5,
+            "flood_signals_detected": 8,
+            "sentiment_score": 0.95
+          }
+        }
+      },
+      "resource_allocation": {
+        "water_rescue_units": 4,
+        "ambulances": 3,
+        "drainage_teams": 2,
+        "traffic_officers": 6,
+        "allocation_priority": "primary",
+        "allocation_percentage": 65,
+        "note": "Receives majority of available resources due to higher severity and larger affected population."
+      },
+      "action": {
+        "alert_message": "⚠️ CRITICAL FLOOD ALERT: University Road severely flooded. 18,000 affected. Full emergency response activated. Avoid area.",
+        "channels": ["sms", "app_push", "dashboard", "public_pa"],
+        "geofence": {
+          "center": { "lat": 24.9180, "lng": 67.0903 },
+          "radius_km": 3.0,
+          "restriction": "avoid_zone"
+        },
+        "emergency_ticket": {
+          "ticket_id": "EMR-2026-0520-0006",
+          "dispatched_to": ["PDMA_Sindh", "KMC_Drainage", "Rescue_1122", "Traffic_Police"],
+          "dispatch_mode": "simulated",
+          "requires_operator_approval": true
+        }
+      }
+    },
+    {
+      "rank": 2,
+      "incident": {
+        "incident_id": "INC-2026-0520-0007",
+        "event_type": "heatwave",
+        "location": "Korangi Industrial Area, Karachi",
+        "coordinates": {
+          "lat": 24.8300,
+          "lng": 67.1310
+        },
+        "severity": 7.2,
+        "priority": "HIGH",
+        "confidence": 0.88,
+        "estimated_affected_population": 9500,
+        "estimated_delay_minutes": null,
+        "raw_signals": {
+          "weather": {
+            "source": "simulated_weather_api",
+            "temperature_celsius": 47,
+            "heat_index": 52,
+            "classification": "extreme_heat"
+          },
+          "traffic": {
+            "source": "simulated_traffic_api",
+            "congestion_level": 4,
+            "classification": "moderate"
+          },
+          "social": {
+            "posts_analyzed": 3,
+            "heat_signals_detected": 4,
+            "sentiment_score": 0.82
+          }
+        }
+      },
+      "resource_allocation": {
+        "ambulances": 2,
+        "cooling_stations": 3,
+        "water_distribution_teams": 2,
+        "medical_teams": 1,
+        "allocation_priority": "secondary",
+        "allocation_percentage": 35,
+        "note": "Receives remaining resources. Lower severity than flood but still requires urgent response. No shared resource types with flood incident."
+      },
+      "action": {
+        "alert_message": "🔥 HEAT EMERGENCY: Korangi Industrial Area experiencing extreme heat (47°C, heat index 52°C). Cooling stations activated. Workers advised to halt outdoor activity.",
+        "channels": ["sms", "app_push", "dashboard"],
+        "geofence": {
+          "center": { "lat": 24.8300, "lng": 67.1310 },
+          "radius_km": 2.0,
+          "restriction": "heat_advisory_zone"
+        },
+        "emergency_ticket": {
+          "ticket_id": "EMR-2026-0520-0007",
+          "dispatched_to": ["Health_Department_Sindh", "Korangi_Industrial_Association"],
+          "dispatch_mode": "simulated",
+          "requires_operator_approval": true
+        }
+      }
+    }
+  ],
+  "resource_conflict_resolution": {
+    "strategy": "severity_weighted_allocation",
+    "total_available_ambulances": 5,
+    "ambulance_allocation": {
+      "university_road_flood": 3,
+      "korangi_heatwave": 2
+    },
+    "conflict_notes": [
+      "Ambulance pool is shared across both incidents. Allocated 60/40 by severity score.",
+      "Water rescue units are flood-specific and not contested.",
+      "Cooling stations are heatwave-specific and not contested.",
+      "If either incident escalates, operator can override allocation ratios."
+    ],
+    "operator_override_available": true
+  },
+  "safety_validation": {
+    "validated_by": "ValidatorGate",
+    "validated": true,
+    "status": "confirmed",
+    "per_incident_validation": [
+      {
+        "incident_id": "INC-2026-0520-0006",
+        "validated": true,
+        "confidence_score": 0.94
+      },
+      {
+        "incident_id": "INC-2026-0520-0007",
+        "validated": true,
+        "confidence_score": 0.88
+      }
+    ],
+    "notes": "Both incidents independently validated. Resource allocation plan reviewed for fairness. Operator approval required for all dispatches."
+  }
+}

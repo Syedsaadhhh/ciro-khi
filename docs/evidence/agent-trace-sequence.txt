@@ -1,0 +1,177 @@
+╔══════════════════════════════════════════════════════════════════════════╗
+║  CIRO Agent Pipeline — Full Trace with Decision Points                 ║
+║  Session: sess-20260520-023000-univ-road                               ║
+║  Location: University Road, Gulshan-e-Iqbal, Karachi                   ║
+║  Timestamp: 2026-05-20T02:30:00Z                                       ║
+╚══════════════════════════════════════════════════════════════════════════╝
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+PIPELINE OVERVIEW:
+  Input → SifterAgent → StrategistAgent → ValidatorGate → CommanderAgent → Output
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+[STAGE 0] INPUT RECEIVED
+  Timestamp:        2026-05-20T02:30:00.000Z
+  Endpoint:         POST /simulate
+  Input payload:
+    location:       "University Road"
+    social_posts:   ["pani bhar gaya gari phas gayi university road emergency"]
+    rainfall_mm:    50
+    congestion_level: 9
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+[STAGE 1] SIFTER AGENT — Signal Parsing & Classification
+  Timestamp:        2026-05-20T02:30:00.450Z → 2026-05-20T02:30:02.412Z
+  Duration:         1962ms
+
+  Step 1.1 — Roman Urdu NLP Parsing
+    Input text:     "pani bhar gaya gari phas gayi university road emergency"
+    Detected lang:  Roman Urdu (Romanized Urdu script)
+    Parsed tokens:  [pani=water, bhar_gaya=filled_up, gari=vehicle, phas_gayi=stuck,
+                     university_road=location, emergency=urgency_keyword]
+    Intent:         flood_emergency
+    Urgency:        HIGH (explicit "emergency" keyword)
+
+  Step 1.2 — Weather Telemetry Ingestion
+    API source:     simulated_weather_api
+    rainfall_mm:    50
+    Classification: extreme (threshold: >40mm = extreme)
+    Decision:       ✓ Weather supports flood hypothesis
+
+  Step 1.3 — Traffic Telemetry Ingestion
+    API source:     simulated_traffic_api
+    congestion:     9/10
+    Classification: severe_gridlock (threshold: >7 = severe)
+    Decision:       ✓ Traffic supports flood hypothesis
+
+  Step 1.4 — Social Signal Scoring
+    Posts analyzed: 1
+    Flood keywords: 4 detected (pani, bhar_gaya, phas_gayi, emergency)
+    Sentiment:      0.85 (crisis sentiment)
+    Decision:       ✓ Strong social signal
+
+  Step 1.5 — Initial Severity Computation
+    Formula:        severity = (weather_weight * 0.35) + (traffic_weight * 0.30) + (social_weight * 0.35)
+    Calculation:    (50/60 * 10 * 0.35) + (9/10 * 10 * 0.30) + (0.85 * 10 * 0.35)
+    Result:         severity = 8.8
+    Confidence:     0.92 (preliminary)
+
+  DECISION POINT: All three sources indicate crisis → FORWARD to StrategistAgent
+  Output:           SignalPackage { severity: 8.8, confidence: 0.92, event_type: flood }
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+[STAGE 2] STRATEGIST AGENT — Cross-Validation & Plan Generation
+  Timestamp:        2026-05-20T02:30:02.500Z → 2026-05-20T02:30:04.102Z
+  Duration:         1602ms
+
+  Step 2.1 — Cross-Source Validation
+    Weather ↔ Social:  CONFIRMS (50mm extreme rainfall + flood_emergency intent)
+    Traffic ↔ Social:  CONFIRMS (9/10 gridlock + flood_emergency intent)
+    Weather ↔ Traffic: CONFIRMS (extreme weather → severe congestion, consistent)
+    Agreement level:   STRONG (3/3 cross-validations pass)
+
+  Step 2.2 — Impact Estimation
+    Affected population: 14,500 (based on University Road population density model)
+    Estimated delay:     90 minutes (based on congestion level + flood duration model)
+    Infrastructure risk: HIGH (University Road is a primary arterial road)
+
+  Step 2.3 — Alternative Route Generation
+    Route 1: Shahrah-e-Faisal Bypass
+      Path:             Shahrah-e-Faisal → NIPA Chowrangi → Safoora Chowrangi
+      Est. delay:       25 minutes
+      Status:           RECOMMENDED (shortest detour)
+
+    Route 2: Rashid Minhas Road Detour
+      Path:             Rashid Minhas Road → Millennium Mall → Gulshan Chowrangi
+      Est. delay:       35 minutes
+      Status:           AVAILABLE (backup option)
+
+  Step 2.4 — Resource Recommendation
+    → 3 water rescue units at University Road (24.918, 67.090)
+    → 2 ambulances at Safoora Chowrangi staging area
+    → KMC drainage pumps at Nagan Chowrangi junction
+
+  DECISION POINT: Strong telemetry agreement → Generate full response plan → FORWARD to ValidatorGate
+  Output:           StrategicPlan { strategy: full_emergency_response, routes: 2, resources: 3 }
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+[STAGE 3] VALIDATOR GATE — Structural Safety Validation
+  Timestamp:        2026-05-20T02:30:04.200Z → 2026-05-20T02:30:04.450Z
+  Duration:         250ms
+
+  Validation Matrix Execution:
+  ┌─────────────────────────────────────────┬────────┬────────────────┐
+  │ Check                                   │ Result │ Value          │
+  ├─────────────────────────────────────────┼────────┼────────────────┤
+  │ social_signal_strength >= 0.7           │  PASS  │ 0.85           │
+  │ weather_telemetry_confirms_event        │  PASS  │ 50mm extreme   │
+  │ traffic_telemetry_confirms_event        │  PASS  │ 9/10 gridlock  │
+  │ no_contradictions_detected              │  PASS  │ 0 conflicts    │
+  │ severity_threshold_met (>= 5.0)        │  PASS  │ 8.8            │
+  └─────────────────────────────────────────┴────────┴────────────────┘
+
+  Checks passed: 5/5
+  Checks failed: 0/5
+
+  Confidence Adjustment:
+    Input confidence:  0.92
+    Adjustment:        +0.04 (full telemetry agreement bonus)
+    Final confidence:  0.96
+
+  DECISION POINT: All checks pass → status = CONFIRMED → FORWARD to CommanderAgent
+  Possible outcomes at this gate:
+    ✓ confirmed                    (all checks pass, confidence >= 0.8)
+    ✗ rejected_by_validator        (telemetry contradicts social, confidence < 0.3)
+    ⚠ requires_operator_review     (contradictions or missing telemetry)
+    ○ no_incident                  (all signals weak, confidence < 0.2)
+
+  Output:           SafetyValidation { validated: true, status: confirmed, confidence: 0.96 }
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+[STAGE 4] COMMANDER AGENT — Action & Dispatch Generation
+  Timestamp:        2026-05-20T02:30:04.500Z → 2026-05-20T02:30:04.900Z
+  Duration:         400ms
+
+  Step 4.1 — Alert Generation
+    Level:          CRITICAL
+    Message:        "⚠️ CRITICAL FLOOD ALERT: University Road, Gulshan-e-Iqbal..."
+    Channels:       sms, app_push, dashboard, public_pa
+
+  Step 4.2 — Geofence Creation
+    Center:         24.9180, 67.0903
+    Radius:         2.5 km
+    Restriction:    avoid_zone
+
+  Step 4.3 — Emergency Ticket
+    Ticket ID:      EMR-2026-0520-0001
+    Dispatch to:    PDMA_Sindh, KMC_Drainage, Rescue_1122
+    Mode:           SIMULATED (requires operator approval)
+
+  Step 4.4 — Firestore Persistence
+    Collection:     incidents/INC-2026-0520-0001
+    Trace:          reasoning_traces/sess-20260520-023000-univ-road
+    Alert:          alerts/ALT-2026-0520-0001
+
+  DECISION POINT: Incident confirmed → Full command package generated → Store & broadcast
+  Output:           CommandPackage { ticket: EMR-2026-0520-0001, channels: 4, geofence: active }
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+[PIPELINE COMPLETE]
+  Total duration:   4812ms
+  Final status:     CONFIRMED
+  Severity:         8.8 / 10
+  Confidence:       0.96
+  Incident ID:      INC-2026-0520-0001
+  Ticket ID:        EMR-2026-0520-0001
+
+  NOTE: All dispatch actions are simulated and require operator approval
+        before any real-world resources are mobilized.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

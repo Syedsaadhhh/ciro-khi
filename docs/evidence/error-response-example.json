@@ -1,0 +1,35 @@
+{
+  "status": "failed",
+  "session_id": "sess-20260520-055500-error",
+  "timestamp": "2026-05-20T05:55:12Z",
+  "pipeline_duration_ms": 1203,
+  "error": "Gemini API rate limit exceeded. Falling back to deterministic analysis.",
+  "error_code": "GEMINI_RATE_LIMIT_429",
+  "error_details": {
+    "api": "Gemini 2.0 Flash",
+    "http_status": 429,
+    "retry_after_seconds": 60,
+    "requests_this_minute": 15,
+    "limit_per_minute": 15
+  },
+  "fallback_activated": true,
+  "fallback_mode": "deterministic_rule_engine",
+  "fallback_capabilities": {
+    "social_parsing": "regex_keyword_matching (reduced accuracy)",
+    "severity_scoring": "weighted_formula (no LLM reasoning)",
+    "strategy_generation": "template_based (predefined plans)",
+    "validation": "rule_based_checks (fully functional)",
+    "command_generation": "template_based (fully functional)"
+  },
+  "operator_notification": {
+    "message": "⚠️ CIRO is operating in fallback mode. Gemini API rate limit reached. Analysis accuracy may be reduced. LLM-powered reasoning will resume automatically when quota resets.",
+    "sent_via": "dashboard",
+    "requires_acknowledgment": false
+  },
+  "recovery": {
+    "auto_retry": true,
+    "retry_at": "2026-05-20T05:56:12Z",
+    "max_retries": 3,
+    "current_retry": 0
+  }
+}

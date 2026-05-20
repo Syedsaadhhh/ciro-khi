@@ -1,0 +1,81 @@
+{
+  "status": "rejected_by_validator",
+  "session_id": "sess-20260520-031200-clifton",
+  "timestamp": "2026-05-20T03:12:44Z",
+  "pipeline_duration_ms": 3291,
+  "fallback_mode": false,
+  "incident": {
+    "incident_id": "INC-2026-0520-0003",
+    "event_type": "flood",
+    "location": "Clifton Block 5, Karachi",
+    "coordinates": {
+      "lat": 24.8138,
+      "lng": 67.0300
+    },
+    "severity": 2.1,
+    "priority": "LOW",
+    "confidence": 0.22,
+    "estimated_affected_population": null,
+    "estimated_delay_minutes": null,
+    "raw_signals": {
+      "weather": {
+        "source": "simulated_weather_api",
+        "rainfall_mm": 0,
+        "classification": "clear",
+        "data_quality": "nominal"
+      },
+      "traffic": {
+        "source": "simulated_traffic_api",
+        "congestion_level": 3,
+        "classification": "normal_flow",
+        "data_quality": "nominal"
+      },
+      "social": {
+        "source": "user_input_roman_urdu",
+        "posts_analyzed": 1,
+        "flood_signals_detected": 3,
+        "sentiment_score": 0.78,
+        "language": "roman_urdu",
+        "parsed_intent": "flood_report",
+        "original_text": "clifton mein bohot pani hai sab doob raha hai madad bhejo"
+      }
+    }
+  },
+  "plan": {
+    "generated_by": "StrategistAgent",
+    "strategy": "pending_validation",
+    "cross_validation": {
+      "weather_confirms_social": false,
+      "traffic_confirms_social": false,
+      "telemetry_agreement": "contradictory"
+    },
+    "alternative_routes": [],
+    "resource_recommendations": [],
+    "strategist_note": "Social signal is strong but neither weather nor traffic telemetry supports the claim. Flagging for ValidatorGate review."
+  },
+  "action": {
+    "generated_by": "CommanderAgent",
+    "alert_message": null,
+    "channels": [],
+    "geofence": null,
+    "emergency_ticket": null,
+    "suppressed_reason": "ValidatorGate rejected the incident as a false positive. No actions dispatched."
+  },
+  "safety_validation": {
+    "validated_by": "ValidatorGate",
+    "validated": false,
+    "status": "rejected_by_validator",
+    "confidence_score": 0.22,
+    "checks_passed": [
+      "social_signal_strength >= 0.7"
+    ],
+    "checks_failed": [
+      "weather_telemetry_contradicts_social (rainfall: 0mm vs flood_report)",
+      "traffic_telemetry_contradicts_social (congestion: 3/10 vs severe_flooding)",
+      "cross_source_agreement_below_threshold"
+    ],
+    "escalation_required": false,
+    "rejection_reason": "Strong social signal but zero corroborating telemetry. Weather is clear (0mm rainfall) and traffic is flowing normally. Pattern matches false positive — likely outdated post, exaggerated report, or misattributed location.",
+    "notes": "ValidatorGate correctly identified this as a false alarm. Social signals alone are insufficient to confirm a crisis when all telemetry sources contradict the report."
+  }
+}

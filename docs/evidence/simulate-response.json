@@ -1,0 +1,302 @@
+{
+  "session_id": "1cff369a-f0d0-48e1-8e22-835fb2bc154b",
+  "status": "completed",
+  "result": {
+    "status": "completed",
+    "incident": {
+      "incident_id": "fe435887-d878-48bf-b8a4-77c4cd61b86c",
+      "location": "University Road",
+      "severity": 10,
+      "confidence": 0.99,
+      "signal_sources": [
+        "traffic",
+        "social",
+        "weather"
+      ],
+      "event_type": "urban_flood",
+      "timestamp": "2026-05-20T02:35:34.729085",
+      "raw_signals": {
+        "weather": {
+          "location": "University Road",
+          "rainfall_mm": 50.0,
+          "intensity": "extreme",
+          "wind_kmh": 34,
+          "source": "google_weather"
+        },
+        "traffic": {
+          "location": "University Road",
+          "congestion_level": 9,
+          "speed_kmh": 5,
+          "free_flow_speed": 60,
+          "incidents": 3,
+          "source": "google_routes"
+        },
+        "social": {
+          "location": "University Road",
+          "flood_signal_count": 1,
+          "false_alarm_count": 0,
+          "aggregate_score": 1.0,
+          "signal_types": [
+            "vehicle_stranded",
+            "flooding"
+          ],
+          "sample_posts": [
+            "pani bhar gaya gari phas gayi university road emergency"
+          ],
+          "source": "social_mock"
+        }
+      },
+      "false_alarm": false,
+      "temperature_c": null,
+      "precipitation_mm": null
+    },
+    "plan": {
+      "incident_id": "fe435887-d878-48bf-b8a4-77c4cd61b86c",
+      "priority": "critical",
+      "validated": true,
+      "affected_population": 2261946,
+      "reroute_required": true,
+      "alternative_routes": [
+        {
+          "name": "Shahrah-e-Faisal Bypass",
+          "via": [
+            "Nursery",
+            "Shahrah-e-Faisal",
+            "Gulshan Chowrangi"
+          ],
+          "estimated_time_minutes": 22,
+          "distance_km": 8.4
+        },
+        {
+          "name": "Nagan Chowrangi Route",
+          "via": [
+            "Nagan Chowrangi",
+            "Liaquatabad",
+            "North Karachi"
+          ],
+          "estimated_time_minutes": 30,
+          "distance_km": 11.2
+        }
+      ],
+      "estimated_delay_minutes": 90,
+      "mitigation_strategy": "Activate full emergency response for University Road. Deploy rescue teams, issue mandatory evacuation for 2,261,946 residents, coordinate with PDMA and NDMA.",
+      "validation_sources": [
+        "traffic",
+        "social",
+        "weather"
+      ],
+      "rejected_reason": null
+    },
+    "action": {
+      "incident_id": "fe435887-d878-48bf-b8a4-77c4cd61b86c",
+      "actions": [
+        "trigger_alert",
+        "reroute_traffic",
+        "dispatch_ticket",
+        "activate_emergency_ops",
+        "push_live_update"
+      ],
+      "alert_message": "CRITICAL FLOOD ALERT: Severe urban flooding detected at University Road. Immediate evacuation recommended. Avoid all roads in the area. Suggested alternate: Shahrah-e-Faisal Bypass via Nursery, Shahrah-e-Faisal, Gulshan Chowrangi.",
+      "geofence_radius_km": 6.0,
+      "geofence": {
+        "center_location": "University Road",
+        "radius_km": 6.0,
+        "lat": 24.942,
+        "lng": 67.1099
+      },
+      "ticket_id": "KHI-E2C98665",
+      "alert_channels": [
+        "dashboard",
+        "sms",
+        "app_push",
+        "emergency_broadcast",
+        "civic_api"
+      ],
+      "executed_at": "2026-05-20T02:35:38.455668",
+      "simulation_id": "83b0d33d-5a3d-4bbd-83dc-18d6a66c245c"
+    },
+    "safety_validation": {
+      "validated": true,
+      "requires_review": false,
+      "fallback_mode": false,
+      "reason": "Confirmed"
+    }
+  },
+  "reasoning_trace": [
+    {
+      "agent": "Orchestrator",
+      "message": "Workflow started for University Road",
+      "data": null,
+      "timestamp": "2026-05-20T02:35:33.644649"
+    },
+    {
+      "agent": "Orchestrator",
+      "message": "Routing to Sifter Agent",
+      "data": null,
+      "timestamp": "2026-05-20T02:35:33.644671"
+    },
+    {
+      "agent": "Sifter",
+      "message": "Starting signal analysis for University Road",
+      "data": null,
+      "timestamp": "2026-05-20T02:35:33.644711"
+    },
+    {
+      "agent": "Sifter",
+      "message": "Weather: extreme rainfall (50.0mm)",
+      "data": null,
+      "timestamp": "2026-05-20T02:35:33.645908"
+    },
+    {
+      "agent": "Sifter",
+      "message": "Traffic: congestion level 9/10, 3 incidents",
+      "data": null,
+      "timestamp": "2026-05-20T02:35:33.645942"
+    },
+    {
+      "agent": "Sifter",
+      "message": "Social: 1 flood signals (score: 1.0)",
+      "data": null,
+      "timestamp": "2026-05-20T02:35:33.645969"
+    },
+    {
+      "agent": "Sifter",
+      "message": "Gemini unavailable, using deterministic fallback: 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3-flash\\nPlease retry in 22.064307116s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-3-flash'}, 'quotaValue': '20'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '22s'}]}}",
+      "data": null,
+      "timestamp": "2026-05-20T02:35:34.728966"
+    },
+    {
+      "agent": "Sifter",
+      "message": "Incident detected: severity=10, confidence=0.99",
+      "data": null,
+      "timestamp": "2026-05-20T02:35:34.729184"
+    },
+    {
+      "agent": "Orchestrator",
+      "message": "Incident confirmed: fe435887 | Routing to Strategist",
+      "data": null,
+      "timestamp": "2026-05-20T02:35:36.120230"
+    },
+    {
+      "agent": "Strategist",
+      "message": "Analyzing incident at University Road (severity: 10)",
+      "data": null,
+      "timestamp": "2026-05-20T02:35:36.120292"
+    },
+    {
+      "agent": "Strategist",
+      "message": "Cross-validating with fresh data sources",
+      "data": null,
+      "timestamp": "2026-05-20T02:35:36.120305"
+    },
+    {
+      "agent": "Strategist",
+      "message": "Validation passed with 3 confirmed sources",
+      "data": null,
+      "timestamp": "2026-05-20T02:35:36.120402"
+    },
+    {
+      "agent": "Strategist",
+      "message": "Running geofence and population estimation",
+      "data": null,
+      "timestamp": "2026-05-20T02:35:36.120417"
+    },
+    {
+      "agent": "Strategist",
+      "message": "Traffic congestion 9/10 requires rerouting",
+      "data": null,
+      "timestamp": "2026-05-20T02:35:36.120471"
+    },
+    {
+      "agent": "Strategist",
+      "message": "Generated 2 alternative routes",
+      "data": null,
+      "timestamp": "2026-05-20T02:35:36.120488"
+    },
+    {
+      "agent": "Strategist",
+      "message": "Incident priority: CRITICAL",
+      "data": null,
+      "timestamp": "2026-05-20T02:35:36.120507"
+    },
+    {
+      "agent": "Strategist",
+      "message": "Plan complete: 2,261,946 people affected, delay 90min",
+      "data": null,
+      "timestamp": "2026-05-20T02:35:37.190316"
+    },
+    {
+      "agent": "Orchestrator",
+      "message": "Plan approved: CRITICAL priority | Routing to Validator",
+      "data": null,
+      "timestamp": "2026-05-20T02:35:37.518909"
+    },
+    {
+      "agent": "ValidatorGate",
+      "message": "Running structural validation to catch false alarms",
+      "data": null,
+      "timestamp": "2026-05-20T02:35:37.518937"
+    },
+    {
+      "agent": "ValidatorGate",
+      "message": "Strong signal and telemetry match. Validation passed.",
+      "data": null,
+      "timestamp": "2026-05-20T02:35:37.518963"
+    },
+    {
+      "agent": "Commander",
+      "message": "Generating actions for incident fe435887",
+      "data": null,
+      "timestamp": "2026-05-20T02:35:37.519054"
+    },
+    {
+      "agent": "Commander",
+      "message": "Alert created: CRITICAL via dashboard, sms, app_push, emergency_broadcast, civic_api",
+      "data": null,
+      "timestamp": "2026-05-20T02:35:38.455089"
+    },
+    {
+      "agent": "Commander",
+      "message": "Reroute simulation activated: Shahrah-e-Faisal Bypass, Nagan Chowrangi Route",
+      "data": null,
+      "timestamp": "2026-05-20T02:35:38.455168"
+    },
+    {
+      "agent": "Commander",
+      "message": "Emergency ticket dispatched: KHI-E2C98665",
+      "data": null,
+      "timestamp": "2026-05-20T02:35:38.455355"
+    },
+    {
+      "agent": "Commander",
+      "message": "Critical severity: activating full emergency operations protocol",
+      "data": null,
+      "timestamp": "2026-05-20T02:35:38.455389"
+    },
+    {
+      "agent": "Commander",
+      "message": "Geofence zone created: 6.0km radius around University Road",
+      "data": null,
+      "timestamp": "2026-05-20T02:35:38.455534"
+    },
+    {
+      "agent": "Commander",
+      "message": "Live dashboard update queued via WebSocket",
+      "data": null,
+      "timestamp": "2026-05-20T02:35:38.455569"
+    },
+    {
+      "agent": "Commander",
+      "message": "All actions complete: trigger_alert, reroute_traffic, dispatch_ticket, activate_emergency_ops, push_live_update",
+      "data": null,
+      "timestamp": "2026-05-20T02:35:38.455943"
+    },
+    {
+      "agent": "Orchestrator",
+      "message": "Workflow pipeline complete. All agents finished.",
+      "data": null,
+      "timestamp": "2026-05-20T02:35:38.761012"
+    }
+  ],
+  "errors": []
+}
