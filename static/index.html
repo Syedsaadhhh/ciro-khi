@@ -43,8 +43,9 @@
       align-items: center;
       justify-content: flex-start;
       min-height: 100vh;
+      /* Desktop: give breathing room around the phone frame */
       padding: 32px 16px;
-      font-family: 'Rajdhani', sans-serif
+      font-family: 'Rajdhani', sans-serif;
     }
 
     h1 {
@@ -69,7 +70,7 @@
     /* DEVICE */
     .device-wrap {
       position: relative;
-      width: 390px
+      width: 390px;
     }
 
     .phone {
@@ -83,6 +84,52 @@
       flex-direction: column;
       box-shadow: 0 0 0 1px #080D14, 0 50px 100px rgba(0, 0, 0, .8), inset 0 1px 0 rgba(255, 255, 255, .03);
       position: relative;
+    }
+
+    /*
+     * ── RESPONSIVE VIEWPORT SCALING ──────────────────────────────────────
+     * On desktop (>430px): phone frame sits centered with padding.
+     *   If the viewport is between 430–850px tall, scale the whole frame
+     *   down proportionally so it never overflows without browser zoom.
+     * On real mobile (≤430px wide): phone fills 100vw × 100dvh with no
+     *   border-radius gaps, no padding, no zoom needed.
+     * ─────────────────────────────────────────────────────────────────────
+     */
+
+    /* Desktop: scale the frame when the window is shorter than the phone */
+    @media (min-width: 431px) {
+      .device-wrap {
+        /* Scale factor: fit 844px phone into available viewport height.
+           clamp(min, preferred, max): never smaller than 55%, never larger than 100% */
+        --phone-scale: clamp(0.55, calc((100vh - 80px) / 844), 1);
+        transform: scale(var(--phone-scale));
+        transform-origin: top center;
+        /* Correct the layout gap left by the scale shrink */
+        margin-bottom: calc((var(--phone-scale) - 1) * 844px);
+      }
+    }
+
+    /* True mobile: fill the screen, remove the decorative phone shell */
+    @media (max-width: 430px) {
+      body {
+        padding: 0;
+        justify-content: flex-start;
+        min-height: 100dvh;
+        background: var(--bg);
+      }
+      h1, .pg-sub {
+        display: none; /* hide desktop title on phone */
+      }
+      .device-wrap {
+        width: 100vw;
+      }
+      .phone {
+        width: 100vw;
+        height: 100dvh;
+        border-radius: 0;
+        border: none;
+        box-shadow: none;
+      }
     }
 
     /* SCREENS */

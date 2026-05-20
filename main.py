@@ -2,6 +2,7 @@ import structlog
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
 from core.config import get_settings
@@ -54,11 +55,17 @@ app.include_router(ws_router, tags=["WebSocket"])
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
-@app.get("/", tags=["Health"])
-@app.get("/health", tags=["Health"])
+@app.get("/", tags=["UI"], include_in_schema=False)
 async def root():
+    """Redirect browser visitors to the CIRO dashboard."""
+    return RedirectResponse(url="/static/index.html")
+
+
+@app.get("/health", tags=["Health"])
+async def health():
+    """JSON health endpoint for uptime monitors and CI checks."""
     return {
-        "system": "Karachi Flood Command Center",
+        "system": "CIRO — Crisis Intelligence & Response Orchestrator",
         "status": "operational",
         "version": "1.0.0",
         "docs": "/docs",
