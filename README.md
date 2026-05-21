@@ -12,12 +12,12 @@ A **production-oriented prototype** for Karachi urban crisis detection, multi-si
 
 | Deliverable | Link |
 |:---|:---|
-| **Mobile App (APK)** | _[Insert Google Drive link to CIRO-Mobile-Demo.apk]_ |
-| **GitHub Repository** | _[Insert GitHub URL]_ |
-| **Main Demo Video (3–5 min)** | _[Insert YouTube/Drive link]_ |
-| **Antigravity Usage Video (2–3 min)** | _[Insert YouTube/Drive link]_ |
-| **Web Dashboard** | _[Insert deployment URL or localhost:8000/static/index.html]_ |
-| **Antigravity Trace ZIP** | _[Insert Drive link to CIRO-Antigravity-Traces.zip]_ |
+| **Mobile App (APK)** | _[attached Drive folder]_ |
+| **GitHub Repository** | _[https://github.com/Syedsaadhhh/ciro-khi]_ |
+| **Main Demo Video (3–5 min)** | _[attached]_ |
+| **Antigravity Usage Video (2–3 min)** | _[attached]_ |
+| **Web Dashboard** | _[https://ciro-khi.up.railway.app/]_ |
+| **Antigravity Trace ZIP** | _[Drive link CIRO-Antigravity-Traces.zip attached]_ |
 
 ---
 
