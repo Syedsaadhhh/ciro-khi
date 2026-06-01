@@ -454,8 +454,6 @@ npx cap open android
 | Variable | Description | Required |
 |:---|:---|:---|
 | `GEMINI_API_KEY` | Google Gemini API key | For live AI mode |
-| `METEOSOURCE_API_KEY` | Weather data API key | For live weather |
-| `TOMTOM_API_KEY` | Traffic data API key | For live traffic |
 | `FIREBASE_CREDENTIALS_PATH` | Path to Firebase service account | For Firestore |
 | `FIREBASE_PROJECT_ID` | Firebase project ID | For Firestore |
 | `FIREBASE_DATABASE_ID` | Firestore database name | Default: `cirokhi` |
