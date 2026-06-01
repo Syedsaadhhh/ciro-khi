@@ -2350,6 +2350,103 @@
       letter-spacing: 0.5px;
       margin-top: 2px;
     }
+
+    /* ══ VALIDATION ERROR BANNER ══ */
+    #validationError {
+      display: none;
+      background: #1E0406;
+      border: 1px solid #5A0C10;
+      border-radius: 6px;
+      padding: 6px 10px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 8px;
+      font-weight: 700;
+      color: #FF5566;
+      letter-spacing: 0.5px;
+      line-height: 1.45;
+      animation: resultSlideUp 0.2s ease;
+    }
+    #validationError.show { display: block; }
+
+    /* ══ OPERATOR APPROVAL MODAL ══ */
+    #approvalModal {
+      display: none;
+      position: absolute;
+      inset: 0;
+      z-index: 35;
+      background: rgba(4,6,10,0.88);
+      backdrop-filter: blur(8px);
+      align-items: center;
+      justify-content: center;
+      padding: 24px 20px;
+      animation: resultSlideUp 0.3s ease;
+    }
+    #approvalModal.show { display: flex; }
+    .apv-card {
+      background: #0D1016;
+      border: 1px solid #1A2436;
+      border-radius: 14px;
+      padding: 18px 16px;
+      width: 100%;
+      max-width: 340px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .apv-header {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      color: #FF9933;
+      letter-spacing: 1.5px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .apv-body {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 8.5px;
+      color: #5A8090;
+      line-height: 1.55;
+    }
+    .apv-summary {
+      background: rgba(0,0,0,0.3);
+      border: 1px solid #1A2436;
+      border-radius: 7px;
+      padding: 8px 10px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 8px;
+      color: #3D6070;
+      line-height: 1.45;
+    }
+    .apv-disclaimer {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 7px;
+      font-weight: 700;
+      color: #FF9933;
+      letter-spacing: 0.5px;
+      text-align: center;
+    }
+    .apv-btns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .apv-btn {
+      padding: 9px 6px;
+      border-radius: 8px;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      border: 1px solid;
+      text-align: center;
+      transition: filter 0.15s;
+    }
+    .apv-btn:hover { filter: brightness(1.2); }
+    .apv-btn.approve { background: #041208; color: #3DFFA0; border-color: #0A3818; }
+    .apv-btn.review  { background: #1A0C00; color: #FF9933;  border-color: #402000; }
   </style>
 </head>
 
@@ -2599,6 +2696,7 @@
               </div>
             </div>
             <div id="ui-safety-label" style="text-align:center; font-family:'Share Tech Mono',monospace; font-size:9px; font-weight:bold; letter-spacing:1px; color:#3D4E62;">AWAITING SIGNAL INPUT</div>
+            <div id="validationError"></div>
             <div id="source-badges-container" class="source-badges"></div>
             
             <!-- Demo Scenario Buttons -->
@@ -2716,6 +2814,19 @@
             </div>
           </div>
 
+          <!-- ══ OPERATOR APPROVAL MODAL ══ -->
+          <div id="approvalModal">
+            <div class="apv-card">
+              <div class="apv-header">⚠ OPERATOR APPROVAL REQUIRED</div>
+              <div class="apv-body">CIRO has prepared a simulated response recommendation based on validated crisis signals. Public alerts and dispatch actions require explicit human operator approval before activation.</div>
+              <div class="apv-summary" id="apvSummary">Preparing recommendation summary...</div>
+              <div class="apv-disclaimer">⚡ SIMULATED RESPONSE — NO REAL DISPATCH WILL OCCUR</div>
+              <div class="apv-btns">
+                <button class="apv-btn approve" onclick="approveSimulatedResponse()">✓ Approve Simulated Response</button>
+                <button class="apv-btn review"  onclick="keepUnderReview()">⏸ Keep Under Review</button>
+              </div>
+            </div>
+          </div>
 
           <!-- ── SENSOR PINS ── -->
           <!-- Sensor 1: near IIC (red zone) -->
@@ -4295,14 +4406,207 @@
     }
 
     // ═══════════════════════════════
-    // LAUNCH DISPATCH — with 8s timeout fallback
+    // INPUT VALIDATION — ValidatorGate pre-check
+    // ═══════════════════════════════
+    /**
+     * Validates the live crisis input before hitting the backend.
+     * Returns { valid: true } on pass, or { valid: false, reason, state } on fail.
+     * Demo scenario buttons bypass this gate (they carry pre-validated data).
+     */
+    function validateCrisisSignal(text, rainfall, congestion, isDemoScenario) {
+      // Demo buttons always pass — they carry internally consistent telemetry
+      if (isDemoScenario) return { valid: true };
+
+      // 1. Empty signal
+      if (!text || text.trim().length === 0) {
+        return { valid: false, state: 'invalid_signal',
+          reason: 'Crisis signal is empty. Please enter a description of the emergency situation.' };
+      }
+
+      const trimmed = text.trim();
+
+      // 2. Minimum meaningful length (12 chars)
+      if (trimmed.length < 12) {
+        return { valid: false, state: 'invalid_signal',
+          reason: 'Signal too short to assess. Minimum 12 characters required.' };
+      }
+
+      // 3. Gibberish / excessive special characters
+      // Count characters that are alphanumeric, space, or safe punctuation
+      const safeChars = (trimmed.match(/[\w\u0600-\u06FF\s,.\-\'"!?]/g) || []).length;
+      const specialChars = trimmed.length - safeChars;
+      const specialRatio = specialChars / trimmed.length;
+      if (specialRatio > 0.35) {
+        return { valid: false, state: 'invalid_signal',
+          reason: 'Signal contains excessive special characters or appears to be gibberish. ValidatorGate requires readable crisis text.' };
+      }
+
+      // 4. Repeated identical characters (e.g. "666666" or ":::::")
+      if (/(.{1,3})\1{4,}/.test(trimmed)) {
+        return { valid: false, state: 'invalid_signal',
+          reason: 'Signal contains repetitive pattern — not a valid crisis report.' };
+      }
+
+      // 5. Rainfall range check
+      const rain = parseFloat(rainfall);
+      if (!isNaN(rain) && (rain < 0 || rain > 300)) {
+        return { valid: false, state: 'invalid_signal',
+          reason: 'Rainfall value out of range (0–300 mm). Please enter a valid measurement.' };
+      }
+
+      // 6. Congestion range check
+      const cong = parseInt(congestion);
+      if (!isNaN(cong) && (cong < 0 || cong > 10)) {
+        return { valid: false, state: 'invalid_signal',
+          reason: 'Congestion level must be between 0 and 10.' };
+      }
+
+      // 7. Weak signal: signal might be text but no supporting telemetry
+      const rainVal  = isNaN(rain) ? 0 : rain;
+      const congVal2 = isNaN(cong) ? 0 : cong;
+      // Count meaningful words (3+ chars) as a proxy for signal richness
+      const wordCount = trimmed.split(/\s+/).filter(w => w.length >= 3).length;
+      if (wordCount < 3 && rainVal === 0 && congVal2 <= 1) {
+        return { valid: false, state: 'requires_operator_review',
+          reason: 'Signal is too weak to confirm. Insufficient words and no supporting telemetry. Operator review required.' };
+      }
+
+      // 8. Contradiction: strong signal but zero everything
+      if (rainVal === 0 && congVal2 === 0) {
+        return { valid: false, state: 'requires_operator_review',
+          reason: 'Telemetry contradiction: Social report present but rainfall=0 and congestion=0. Flagged for operator review.' };
+      }
+
+      return { valid: true };
+    }
+
+    // ═══════════════════════════════
+    // OPERATOR APPROVAL GATE
+    // ═══════════════════════════════
+    let _pendingApprovalData = null; // holds result while waiting for operator decision
+
+    function showApprovalModal(result) {
+      _pendingApprovalData = result;
+      const modal = document.getElementById('approvalModal');
+      if (!modal) return;
+      // Populate summary from result
+      const inc  = result.incident  || {};
+      const plan = result.plan      || {};
+      const act  = result.action    || {};
+      const sev  = inc.severity     || '?';
+      const conf = inc.confidence   ? (inc.confidence * 100).toFixed(0) + '%' : '?';
+      const pop  = plan.affected_population ? plan.affected_population.toLocaleString() : '?';
+      const pri  = plan.priority    ? plan.priority.toUpperCase() : '?';
+      const msg  = act.alert_message || plan.mitigation_strategy || 'Recommendation prepared.';
+      document.getElementById('apvSummary').textContent =
+        `Severity: ${sev} · Confidence: ${conf} · Population at risk: ${pop}
+ Priority: ${pri}
+ Proposed action: ${msg}
+⚡ All dispatch actions are SIMULATED and require operator approval before any real-world execution.`;
+      modal.classList.add('show');
+    }
+
+    function approveSimulatedResponse() {
+      const modal = document.getElementById('approvalModal');
+      if (modal) modal.classList.remove('show');
+      const lbl = document.getElementById('ui-safety-label');
+      if (lbl) { lbl.textContent = '✓ SIMULATED RESPONSE APPROVED — RESPONSE PACKAGE ACTIVE'; lbl.style.color = '#1BF075'; }
+      // Now show the result overlay with the saved data
+      if (_pendingApprovalData) _showConfirmedOverlay(_pendingApprovalData);
+      _pendingApprovalData = null;
+    }
+
+    function keepUnderReview() {
+      const modal = document.getElementById('approvalModal');
+      if (modal) modal.classList.remove('show');
+      const lbl = document.getElementById('ui-safety-label');
+      if (lbl) { lbl.textContent = '⏸ OPERATOR REVIEW — NO DISPATCH RECOMMENDED'; lbl.style.color = '#FF9933'; }
+      const overlay = document.getElementById('resultOverlay');
+      if (overlay) {
+        overlay.className = 'result-overlay visible review';
+        document.getElementById('resultTitle').textContent = '⏸ UNDER REVIEW';
+        document.getElementById('resultTitle').style.color = '#FF9933';
+        document.getElementById('resultSeverity').textContent = '—';
+        document.getElementById('resultConfidence').textContent = '—';
+        document.getElementById('resultConfBar').style.width = '0';
+        document.getElementById('resultPopulation').textContent = '—';
+        document.getElementById('resultPriority').textContent = 'REVIEW';
+        document.getElementById('resultAction').textContent = 'Operator chose to keep incident under review. No simulated dispatch recommended.';
+        const chip = document.getElementById('demoStateChip');
+        if (chip) { chip.className = 'demo-state-chip review'; chip.textContent = '⚠ OPERATOR REVIEW'; }
+        setTimeout(() => overlay.classList.remove('visible'), 10000);
+      }
+      _pendingApprovalData = null;
+    }
+
+    // Internal: show confirmed overlay after operator approval
+    function _showConfirmedOverlay(result) {
+      const overlay = document.getElementById('resultOverlay');
+      const inc = result.incident || {};
+      const plan = result.plan || {};
+      const action = result.action || {};
+      overlay.className = 'result-overlay visible confirmed';
+      document.getElementById('resultTitle').textContent = 'SIMULATED RESPONSE APPROVED';
+      document.getElementById('resultTitle').style.color = '#1BF075';
+      document.getElementById('resultSeverity').textContent = inc.severity || '—';
+      document.getElementById('resultSeverity').style.color = (inc.severity >= 8) ? '#FF2233' : (inc.severity >= 5) ? '#FF7700' : '#1A8FFF';
+      const conf = inc.confidence || 0;
+      document.getElementById('resultConfidence').textContent = (conf * 100).toFixed(0) + '%';
+      document.getElementById('resultConfBar').style.width = (conf * 100) + '%';
+      document.getElementById('resultPopulation').textContent = (plan.affected_population || 0).toLocaleString();
+      document.getElementById('resultPriority').textContent = (plan.priority || '—').toUpperCase();
+      document.getElementById('resultAction').textContent = (action.alert_message || plan.mitigation_strategy || 'Recommendation package active.');
+      const chip = document.getElementById('demoStateChip');
+      if (chip) { chip.className = 'demo-state-chip confirmed'; chip.textContent = '● SIMULATED RESPONSE APPROVED'; }
+      const elComm = document.getElementById('scorecard-commuters');
+      if (elComm) elComm.textContent = (plan.affected_population || 10000).toLocaleString();
+      const elTime = document.getElementById('scorecard-time');
+      if (elTime) elTime.textContent = plan.estimated_delay_minutes || 30;
+      populateResourcePanel('completed', result);
+      setTimeout(() => overlay.classList.remove('visible'), 12000);
+    }
+
+    // ═══════════════════════════════
+    // LAUNCH DISPATCH — with input validation + 8s timeout fallback
     // ═══════════════════════════════
     async function launchDispatch() {
-      const type = window.currentScenarioType || 1;
+      const type = window.currentScenarioType || 0; // 0 = manual live input
+      const isDemoScenario = type >= 1; // demo buttons set type 1-4
 
       const btn = document.getElementById('dispatchBtn');
       const originalText = btn.innerHTML;
-      btn.textContent = '⚡ DISPATCHING...';
+
+      // ── Read inputs ──
+      const textVal  = (document.getElementById('rawSignalInput').value || '').trim();
+      const precipRaw = document.getElementById('precipInput').value;
+      const congRaw   = document.getElementById('congestionInput').value;
+      const precipVal = parseFloat(precipRaw);
+      const congVal   = parseInt(congRaw);
+
+      // ── Hide any previous validation error ──
+      const errBanner = document.getElementById('validationError');
+      if (errBanner) errBanner.classList.remove('show');
+
+      // ── Run input validation (skip for demo scenarios) ──
+      const check = validateCrisisSignal(textVal, precipRaw, congRaw, isDemoScenario);
+      if (!check.valid) {
+        // Show inline validation error — no dispatch
+        if (errBanner) {
+          errBanner.textContent = '❌ Invalid or weak crisis signal — operator review required. No dispatch recommended.';
+          if (check.reason) errBanner.textContent += ' \n' + check.reason;
+          errBanner.classList.add('show');
+        }
+        const lbl = document.getElementById('ui-safety-label');
+        if (lbl) {
+          lbl.textContent = check.state === 'invalid_signal'
+            ? '❌ INVALID SIGNAL — NO DISPATCH'
+            : '⚠ WEAK SIGNAL — OPERATOR REVIEW REQUIRED';
+          lbl.style.color = check.state === 'invalid_signal' ? '#FF5566' : '#FF9933';
+        }
+        return; // stop here — never dispatch
+      }
+
+      btn.textContent = '⏳ Preparing recommendation...';
       btn.style.color = '#FF9933';
       btn.style.borderColor = '#402000';
       btn.disabled = true;
@@ -4324,24 +4628,20 @@
 
       // If already offline, skip fetch entirely
       if (window.ciroOfflineMode) {
-        // Staged progress runs; offline sim fires after 4.8s
         setTimeout(() => {
           stopDispatchProgress(true);
-          runOfflineSimulation(type);
+          runOfflineSimulation(type || 1);
           resetBtn();
         }, 4800);
         return;
       }
 
       // Build payload
-      const textVal = document.getElementById('rawSignalInput').value;
-      const precipVal = parseFloat(document.getElementById('precipInput').value) || 0;
-      const congVal   = parseInt(document.getElementById('congestionInput').value) || 5;
       const payload = {
         location: 'University Road',
         social_posts: textVal ? [textVal] : null,
-        rainfall_mm: precipVal,
-        congestion_level: congVal
+        rainfall_mm: isNaN(precipVal) ? 0 : precipVal,
+        congestion_level: isNaN(congVal) ? 5 : congVal
       };
 
       // Race: real fetch vs 8-second timeout
@@ -4349,11 +4649,10 @@
       const timeoutId = setTimeout(() => {
         if (fellBack) return;
         fellBack = true;
-        // Show fallback label
         const lbl = document.getElementById('ui-safety-label');
         if (lbl) { lbl.textContent = '⚠ LIVE API DELAY — FALLBACK DEMO MODE'; lbl.style.color = '#FF9933'; }
         stopDispatchProgress(false);
-        runOfflineSimulation(type);
+        runOfflineSimulation(type || 1);
         resetBtn();
       }, 8000);
 
@@ -4363,11 +4662,11 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         });
-        if (fellBack) return; // timeout already fired
+        if (fellBack) return;
         clearTimeout(timeoutId);
         const data = await resp.json();
         stopDispatchProgress(true);
-        btn.textContent = '✓ DISPATCH COMPLETE';
+        btn.textContent = '✓ Recommendation ready';
         btn.style.color = '#1BF075';
         btn.style.borderColor = '#0A3818';
         btn.disabled = false;
@@ -4381,7 +4680,7 @@
         const lbl = document.getElementById('ui-safety-label');
         if (lbl) { lbl.textContent = '⚠ LIVE API DELAY — FALLBACK DEMO MODE'; lbl.style.color = '#FF9933'; }
         stopDispatchProgress(false);
-        runOfflineSimulation(type);
+        runOfflineSimulation(type || 1);
         resetBtn();
       }
     }
@@ -4473,21 +4772,6 @@
       const status = result.status || data.status || 'unknown';
       hideResourcePanel();
 
-      // --- SAFETY LABEL ---
-      if (status === 'completed') {
-        lbl.textContent = "✓ CONFIRMED — RESPONSE ACTIVE";
-        lbl.style.color = "#1BF075";
-      } else if (status === 'requires_operator_review') {
-        lbl.textContent = "⚠ OPERATOR REVIEW REQUIRED";
-        lbl.style.color = "#FF9933";
-      } else if (status === 'no_incident') {
-        lbl.textContent = "✕ NO INCIDENT — FALSE ALARM";
-        lbl.style.color = "#FF5566";
-      } else if (status === 'rejected' || status === 'rejected_by_validator') {
-        lbl.textContent = "✕ REJECTED — FALSE SIGNAL";
-        lbl.style.color = "#FF5566";
-      }
-
       // --- SOURCE BADGES ---
       if (badges) {
         badges.innerHTML = '';
@@ -4522,38 +4806,23 @@
       // --- DEMO STATE CHIP ---
       const chip = document.getElementById('demoStateChip');
       if (chip) {
-        const t = window.currentScenarioType || 1;
+        const t = window.currentScenarioType || 0;
         chip.className = 'demo-state-chip';
         if (t === 1) { chip.classList.add('confirmed'); chip.textContent = '● CONFIRMED FLOOD'; }
         else if (t === 2) { chip.classList.add('rejected'); chip.textContent = '✕ FALSE ALARM'; }
         else if (t === 3) { chip.classList.add('fallback'); chip.textContent = '◐ MOCK FALLBACK'; }
-        else { chip.classList.add('review'); chip.textContent = '⚠ OPERATOR REVIEW'; }
+        else if (t === 4) { chip.classList.add('review'); chip.textContent = '⚠ OPERATOR REVIEW'; }
+        else { chip.classList.add('review'); chip.textContent = '⚠ LIVE INPUT'; }
       }
 
-      // --- RESULT OVERLAY (screenshot-ready) ---
+      // --- STATUS ROUTING ---
       if (status === 'completed' && result.incident) {
-        const inc = result.incident;
-        const plan = result.plan || {};
-        const action = result.action || {};
-        overlay.className = 'result-overlay visible confirmed';
-        document.getElementById('resultTitle').textContent = 'INCIDENT CONFIRMED';
-        document.getElementById('resultTitle').style.color = '#1BF075';
-        document.getElementById('resultSeverity').textContent = inc.severity || '—';
-        document.getElementById('resultSeverity').style.color = (inc.severity >= 8) ? '#FF2233' : (inc.severity >= 5) ? '#FF7700' : '#1A8FFF';
-        const conf = inc.confidence || 0;
-        document.getElementById('resultConfidence').textContent = (conf * 100).toFixed(0) + '%';
-        document.getElementById('resultConfBar').style.width = (conf * 100) + '%';
-        document.getElementById('resultPopulation').textContent = (plan.affected_population || 0).toLocaleString();
-        document.getElementById('resultPriority').textContent = (plan.priority || '—').toUpperCase();
-        document.getElementById('resultAction').textContent = action.alert_message || plan.mitigation_strategy || 'Commander action pending...';
-        const elComm = document.getElementById('scorecard-commuters');
-        if (elComm) elComm.textContent = (plan.affected_population || 10000).toLocaleString();
-        const elTime = document.getElementById('scorecard-time');
-        if (elTime) elTime.textContent = plan.estimated_delay_minutes || 30;
-        populateResourcePanel('completed', result);
-        setTimeout(() => overlay.classList.remove('visible'), 10000);
+        // Confirmed incident: show approval gate first
+        if (lbl) { lbl.textContent = '⏳ Recommendation ready — awaiting operator approval'; lbl.style.color = '#FF9933'; }
+        showApprovalModal(result);
 
       } else if (status === 'requires_operator_review') {
+        if (lbl) { lbl.textContent = '⚠ OPERATOR REVIEW REQUIRED'; lbl.style.color = '#FF9933'; }
         overlay.className = 'result-overlay visible review';
         document.getElementById('resultTitle').textContent = '⚠ OPERATOR REVIEW';
         document.getElementById('resultTitle').style.color = '#FF9933';
@@ -4562,11 +4831,13 @@
         document.getElementById('resultConfBar').style.width = '0';
         document.getElementById('resultPopulation').textContent = '—';
         document.getElementById('resultPriority').textContent = result.reason ? 'REVIEW' : '—';
-        document.getElementById('resultAction').textContent = result.reason || 'Signal requires manual operator review before dispatch.';
+        document.getElementById('resultAction').textContent = result.reason || 'Signal requires manual operator review before any dispatch.';
+        if (chip) { chip.className = 'demo-state-chip review'; chip.textContent = '⚠ OPERATOR REVIEW'; }
         populateResourcePanel('requires_operator_review', result);
         setTimeout(() => overlay.classList.remove('visible'), 10000);
 
       } else if (status === 'no_incident') {
+        if (lbl) { lbl.textContent = '✕ NO INCIDENT — FALSE ALARM'; lbl.style.color = '#FF5566'; }
         overlay.className = 'result-overlay visible rejected';
         document.getElementById('resultTitle').textContent = '✕ NO INCIDENT';
         document.getElementById('resultTitle').style.color = '#FF5566';
@@ -4576,6 +4847,37 @@
         document.getElementById('resultPopulation').textContent = '0';
         document.getElementById('resultPriority').textContent = 'NONE';
         document.getElementById('resultAction').textContent = result.message || 'Signal classified as false alarm. No crisis detected.';
+        if (chip) { chip.className = 'demo-state-chip rejected'; chip.textContent = '✕ FALSE ALARM'; }
+        populateResourcePanel('no_incident', result);
+        setTimeout(() => overlay.classList.remove('visible'), 8000);
+
+      } else if (status === 'rejected' || status === 'rejected_by_validator') {
+        if (lbl) { lbl.textContent = '✕ REJECTED — FALSE SIGNAL'; lbl.style.color = '#FF5566'; }
+        overlay.className = 'result-overlay visible rejected';
+        document.getElementById('resultTitle').textContent = '✕ REJECTED BY VALIDATOR';
+        document.getElementById('resultTitle').style.color = '#FF5566';
+        document.getElementById('resultSeverity').textContent = '—';
+        document.getElementById('resultConfidence').textContent = '0%';
+        document.getElementById('resultConfBar').style.width = '0';
+        document.getElementById('resultPopulation').textContent = '—';
+        document.getElementById('resultPriority').textContent = 'NONE';
+        document.getElementById('resultAction').textContent = result.reason || 'ValidatorGate rejected this signal as a false alarm.';
+        if (chip) { chip.className = 'demo-state-chip rejected'; chip.textContent = '✕ FALSE SIGNAL'; }
+        populateResourcePanel('no_incident', result);
+        setTimeout(() => overlay.classList.remove('visible'), 8000);
+
+      } else if (status === 'invalid_signal') {
+        if (lbl) { lbl.textContent = '❌ INVALID SIGNAL — NO DISPATCH'; lbl.style.color = '#FF5566'; }
+        overlay.className = 'result-overlay visible rejected';
+        document.getElementById('resultTitle').textContent = '❌ INVALID SIGNAL';
+        document.getElementById('resultTitle').style.color = '#FF5566';
+        document.getElementById('resultSeverity').textContent = '—';
+        document.getElementById('resultConfidence').textContent = '0%';
+        document.getElementById('resultConfBar').style.width = '0';
+        document.getElementById('resultPopulation').textContent = '—';
+        document.getElementById('resultPriority').textContent = 'NONE';
+        document.getElementById('resultAction').textContent = result.reason || 'Input failed ValidatorGate pre-check. Not a valid crisis signal.';
+        if (chip) { chip.className = 'demo-state-chip rejected'; chip.textContent = '❌ INVALID SIGNAL'; }
         populateResourcePanel('no_incident', result);
         setTimeout(() => overlay.classList.remove('visible'), 8000);
       }
