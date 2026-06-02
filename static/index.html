@@ -2454,6 +2454,7 @@
 
   <h1>C I R O</h1>
   <div class="pg-sub">CRISIS INTELLIGENCE &amp; RESPONSE ORCHESTRATOR · INTERACTIVE PROTOTYPE</div>
+  <div style="text-align:center;font-family:'Share Tech Mono',monospace;font-size:7px;color:#1A2A36;letter-spacing:1px;margin-top:2px;">Safety build: validation-state-reset-final</div>
 
   <div class="device-wrap">
     <div class="phone" id="phone">
@@ -4142,9 +4143,40 @@
     }
 
     window.addEventListener('load', () => {
-      window.currentScenarioType = 1;
+      // 0 = no demo selected; user must pick a demo button or type manually.
+      // NEVER default to 1 — that would make manual input look like Confirmed Flood.
+      window.currentScenarioType = 0;
       checkBackendStatus();
       initWebSocket();
+      console.log('CIRO safety build validation-state-reset-final loaded');
+
+      // ── Input edit reset: any manual keystroke cancels demo mode ──
+      const sigInput = document.getElementById('rawSignalInput');
+      if (sigInput) {
+        sigInput.addEventListener('input', () => {
+          // Cancel demo scenario
+          window.currentScenarioType = 0;
+          // Hide approval modal if open
+          const modal = document.getElementById('approvalModal');
+          if (modal) modal.classList.remove('show');
+          // Hide validation error
+          const errBanner = document.getElementById('validationError');
+          if (errBanner) errBanner.classList.remove('show');
+          // Reset status label
+          const lbl = document.getElementById('ui-safety-label');
+          if (lbl) { lbl.textContent = 'AWAITING SIGNAL INPUT'; lbl.style.color = '#3D4E62'; }
+          // Clear stale result overlay
+          const overlay = document.getElementById('resultOverlay');
+          if (overlay) overlay.classList.remove('visible', 'confirmed', 'review', 'rejected');
+          // Reset button
+          const btn = document.getElementById('dispatchBtn');
+          if (btn && btn.disabled === false) {
+            btn.innerHTML = '\u26a1 LAUNCH DISPATCH';
+            btn.style.color = '#1BF075';
+            btn.style.borderColor = '#0A3818';
+          }
+        });
+      }
     });
 
     function loadScenario(type) {
@@ -4431,47 +4463,60 @@
           reason: 'Signal too short to assess. Minimum 12 characters required.' };
       }
 
-      // 3. Gibberish / excessive special characters
-      // Count characters that are alphanumeric, space, or safe punctuation
+      // 3. Must contain at least 2 meaningful language words (4+ alpha chars each).
+      //    This catches "@#:5:5:6:6:" which has ZERO language words.
+      const langWords = (trimmed.match(/[a-zA-Z\u0600-\u06FF]{4,}/g) || []);
+      if (langWords.length < 2) {
+        return { valid: false, state: 'invalid_signal',
+          reason: 'Signal lacks readable language words. ValidatorGate requires at least 2 meaningful words.' };
+      }
+
+      // 4. Gibberish / excessive special characters
+      //    Safe chars: letters, Urdu Unicode, digits, spaces, common punctuation
       const safeChars = (trimmed.match(/[\w\u0600-\u06FF\s,.\-\'"!?]/g) || []).length;
       const specialChars = trimmed.length - safeChars;
       const specialRatio = specialChars / trimmed.length;
-      if (specialRatio > 0.35) {
+      if (specialRatio > 0.30) {
         return { valid: false, state: 'invalid_signal',
           reason: 'Signal contains excessive special characters or appears to be gibberish. ValidatorGate requires readable crisis text.' };
       }
 
-      // 4. Repeated identical characters (e.g. "666666" or ":::::")
+      // 5. Repeated identical short patterns (e.g. "666666" or ":::::")
       if (/(.{1,3})\1{4,}/.test(trimmed)) {
         return { valid: false, state: 'invalid_signal',
           reason: 'Signal contains repetitive pattern — not a valid crisis report.' };
       }
 
-      // 5. Rainfall range check
+      // 6. Colon-number patterns like "5:5:6:6" — scanner/test input, not real text
+      if (/^[\s@#$%^&*!?\d:.,;_|\-]+$/.test(trimmed)) {
+        return { valid: false, state: 'invalid_signal',
+          reason: 'Signal appears to be symbols or numbers only — not a valid crisis description.' };
+      }
+
+      // 7. Rainfall range check
       const rain = parseFloat(rainfall);
       if (!isNaN(rain) && (rain < 0 || rain > 300)) {
         return { valid: false, state: 'invalid_signal',
           reason: 'Rainfall value out of range (0–300 mm). Please enter a valid measurement.' };
       }
 
-      // 6. Congestion range check
+      // 8. Congestion range check
       const cong = parseInt(congestion);
       if (!isNaN(cong) && (cong < 0 || cong > 10)) {
         return { valid: false, state: 'invalid_signal',
           reason: 'Congestion level must be between 0 and 10.' };
       }
 
-      // 7. Weak signal: signal might be text but no supporting telemetry
+      // 9. Weak signal: text present but no supporting telemetry at all
       const rainVal  = isNaN(rain) ? 0 : rain;
       const congVal2 = isNaN(cong) ? 0 : cong;
-      // Count meaningful words (3+ chars) as a proxy for signal richness
       const wordCount = trimmed.split(/\s+/).filter(w => w.length >= 3).length;
       if (wordCount < 3 && rainVal === 0 && congVal2 <= 1) {
         return { valid: false, state: 'requires_operator_review',
           reason: 'Signal is too weak to confirm. Insufficient words and no supporting telemetry. Operator review required.' };
       }
 
-      // 8. Contradiction: strong signal but zero everything
+      // 10. Contradiction: signal present but all telemetry zero
       if (rainVal === 0 && congVal2 === 0) {
         return { valid: false, state: 'requires_operator_review',
           reason: 'Telemetry contradiction: Social report present but rainfall=0 and congestion=0. Flagged for operator review.' };
@@ -4539,7 +4584,6 @@
       _pendingApprovalData = null;
     }
 
-    // Internal: show confirmed overlay after operator approval
     function _showConfirmedOverlay(result) {
       const overlay = document.getElementById('resultOverlay');
       const inc = result.incident || {};
@@ -4567,60 +4611,83 @@
     }
 
     // ═══════════════════════════════
-    // LAUNCH DISPATCH — with input validation + 8s timeout fallback
+    // CLEAR STALE RESULTS — call before every new run
     // ═══════════════════════════════
-    async function launchDispatch() {
-      const type = window.currentScenarioType || 0; // 0 = manual live input
-      const isDemoScenario = type >= 1; // demo buttons set type 1-4
-
-      const btn = document.getElementById('dispatchBtn');
-      const originalText = btn.innerHTML;
-
-      // ── Read inputs ──
-      const textVal  = (document.getElementById('rawSignalInput').value || '').trim();
-      const precipRaw = document.getElementById('precipInput').value;
-      const congRaw   = document.getElementById('congestionInput').value;
-      const precipVal = parseFloat(precipRaw);
-      const congVal   = parseInt(congRaw);
-
-      // ── Hide any previous validation error ──
+    function clearStaleResults() {
+      const overlay = document.getElementById('resultOverlay');
+      if (overlay) overlay.classList.remove('visible', 'confirmed', 'review', 'rejected');
+      const modal = document.getElementById('approvalModal');
+      if (modal) modal.classList.remove('show');
+      _pendingApprovalData = null;
+      const ids = ['resultTitle','resultSeverity','resultConfidence','resultPopulation','resultPriority','resultAction'];
+      const blanks = ['—','—','—','—','—','—'];
+      ids.forEach((id, i) => { const el = document.getElementById(id); if (el) el.textContent = blanks[i]; });
+      const bar = document.getElementById('resultConfBar');
+      if (bar) bar.style.width = '0';
+      const panel = document.getElementById('resourcePanel');
+      if (panel) panel.classList.remove('visible');
+      const badges = document.getElementById('source-badges-container');
+      if (badges) badges.innerHTML = '';
       const errBanner = document.getElementById('validationError');
       if (errBanner) errBanner.classList.remove('show');
+      const chip = document.getElementById('demoStateChip');
+      if (chip) { chip.className = 'demo-state-chip review'; chip.textContent = '◌ PROCESSING'; }
+    }
 
-      // ── Run input validation (skip for demo scenarios) ──
+    // ═══════════════════════════════
+    // LAUNCH DISPATCH — validation-state-reset-final
+    // ═══════════════════════════════
+    async function launchDispatch() {
+      const type = window.currentScenarioType || 0; 
+      const isDemoScenario = (type >= 1 && type <= 4);
+
+      const btn = document.getElementById('dispatchBtn');
+      const originalHTML = '\u26a1 LAUNCH DISPATCH';
+
+      const textVal   = (document.getElementById('rawSignalInput').value || '').trim();
+      const precipRaw = document.getElementById('precipInput').value;
+      const congRaw   = document.getElementById('congestionInput').value;
+
       const check = validateCrisisSignal(textVal, precipRaw, congRaw, isDemoScenario);
       if (!check.valid) {
-        // Show inline validation error — no dispatch
+        clearStaleResults();
+        const errBanner = document.getElementById('validationError');
         if (errBanner) {
-          errBanner.textContent = '❌ Invalid or weak crisis signal — operator review required. No dispatch recommended.';
-          if (check.reason) errBanner.textContent += ' \n' + check.reason;
+          errBanner.textContent = '\u274c Invalid or weak crisis signal \u2014 operator review required. No dispatch recommended. ' + (check.reason || '');
           errBanner.classList.add('show');
         }
         const lbl = document.getElementById('ui-safety-label');
         if (lbl) {
           lbl.textContent = check.state === 'invalid_signal'
-            ? '❌ INVALID SIGNAL — NO DISPATCH'
-            : '⚠ WEAK SIGNAL — OPERATOR REVIEW REQUIRED';
+            ? '\u274c INVALID SIGNAL \u2014 NO DISPATCH'
+            : '\u26a0 WEAK SIGNAL \u2014 OPERATOR REVIEW REQUIRED';
           lbl.style.color = check.state === 'invalid_signal' ? '#FF5566' : '#FF9933';
         }
-        return; // stop here — never dispatch
+        btn.innerHTML = originalHTML;
+        btn.style.color = '#1BF075';
+        btn.style.borderColor = '#0A3818';
+        btn.disabled = false;
+        return;
       }
 
-      btn.textContent = '⏳ Preparing recommendation...';
+      clearStaleResults();
+      btn.textContent = '\u23f3 Preparing recommendation...';
       btn.style.color = '#FF9933';
       btn.style.borderColor = '#402000';
       btn.disabled = true;
 
-      // Always show staged progress immediately
       startDispatchProgress();
 
-      const overlay = document.getElementById('resultOverlay');
-      overlay.classList.remove('visible','confirmed','review','rejected');
-      const badges = document.getElementById('source-badges-container');
-      if (badges) badges.innerHTML = '';
+      const precipVal = parseFloat(precipRaw);
+      const congVal   = parseInt(congRaw);
+
+      // Effective offline type: demo buttons use their own type; manual input uses
+      // scenario 2 (false alarm trace) as the safest proxy when validation passed.
+      // This prevents type=0 from ever resolving to 1 (Confirmed Flood) via ||1.
+      const offlineType = isDemoScenario ? type : 2;
 
       const resetBtn = () => {
-        btn.innerHTML = originalText;
+        btn.innerHTML = originalHTML;
         btn.style.color = '#1BF075';
         btn.style.borderColor = '#0A3818';
         btn.disabled = false;
@@ -4630,7 +4697,7 @@
       if (window.ciroOfflineMode) {
         setTimeout(() => {
           stopDispatchProgress(true);
-          runOfflineSimulation(type || 1);
+          runOfflineSimulation(offlineType);
           resetBtn();
         }, 4800);
         return;
@@ -4652,7 +4719,7 @@
         const lbl = document.getElementById('ui-safety-label');
         if (lbl) { lbl.textContent = '⚠ LIVE API DELAY — FALLBACK DEMO MODE'; lbl.style.color = '#FF9933'; }
         stopDispatchProgress(false);
-        runOfflineSimulation(type || 1);
+        runOfflineSimulation(offlineType);
         resetBtn();
       }, 8000);
 
@@ -4680,7 +4747,7 @@
         const lbl = document.getElementById('ui-safety-label');
         if (lbl) { lbl.textContent = '⚠ LIVE API DELAY — FALLBACK DEMO MODE'; lbl.style.color = '#FF9933'; }
         stopDispatchProgress(false);
-        runOfflineSimulation(type || 1);
+        runOfflineSimulation(offlineType);
         resetBtn();
       }
     }
