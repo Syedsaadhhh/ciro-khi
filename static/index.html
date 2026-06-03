@@ -4081,6 +4081,14 @@
         ws.onmessage = function (event) {
           try {
             const msg = JSON.parse(event.data);
+
+            // ── run_context: capture run_id for stale-event guard ──
+            if (msg.type === 'run_context') {
+              window._currentRunId = msg.run_id || null;
+              window._currentSessionId = msg.session_id || null;
+              return;
+            }
+
             if (msg.type === 'trace') {
               let bgColor = "#1A8FFF", fgColor = "#1A8FFF", msgColor = "#6A9AAB";
               const agent = msg.agent ? msg.agent.toUpperCase() : "SYSTEM";
@@ -4114,20 +4122,37 @@
               const revMatch = msg.message.match(/loss.*?Rs\s*([\d.]+[MB])/i) || msg.message.match(/revenue.*?Rs\s*([\d.]+[MB])/i);
               if (revMatch) {
                 const el = document.getElementById('scorecard-revenue');
-                if (el) el.textContent = "₨" + revMatch[1];
+                if (el) el.textContent = "\u20a8" + revMatch[1];
               }
 
               terminal.appendChild(row);
               terminal.scrollTop = terminal.scrollHeight;
-            } else if (msg.type === 'status') {
+
+            } else if (msg.type === 'workflow_status') {
+              // ── Stale WS guard ──────────────────────────────────────
+              // If the message carries a run_id that doesn't match the
+              // current active run, ignore it. This prevents a slow
+              // backend response from a previous run from overwriting
+              // the invalid/review state of the current run.
+              if (msg.run_id && window._currentRunId && msg.run_id !== window._currentRunId) {
+                console.debug('CIRO WS: stale event ignored', msg.status, msg.run_id);
+                return;
+              }
+              // Only overwrite label if the current UI state is still
+              // in a live-run state (not already resolved to invalid/review)
+              const safeStatesToOverwrite = ['idle', 'validating', 'preparing'];
+              if (!safeStatesToOverwrite.includes(window._uiState || 'idle')) {
+                console.debug('CIRO WS: label overwrite blocked by uiState', window._uiState);
+                return;
+              }
               const el = document.getElementById('ui-safety-label');
               if (el) {
-                if (msg.status === 'confirmed') { el.textContent = "✓ CONFIRMED"; el.style.color = "#1BF075"; }
-                else if (msg.status === 'under_review') { el.textContent = "⚠ OPERATOR REVIEW REQUIRED"; el.style.color = "#FF9933"; }
-                else if (msg.status === 'mock_fallback') { el.textContent = "📡 MOCK FALLBACK ACTIVE"; el.style.color = "#AA44FF"; }
-                else if (msg.status === 'rejected') { el.textContent = "✕ REJECTED / FALSE SIGNAL"; el.style.color = "#FF5566"; }
-                else if (msg.status === 'validating') { el.textContent = "◈ VALIDATING..."; el.style.color = "#1A8FFF"; }
-                else if (msg.status === 'response recommended') { el.textContent = "✓ RESPONSE RECOMMENDED"; el.style.color = "#1BF075"; }
+                if (msg.status === 'confirmed') { el.textContent = "\u2713 CONFIRMED"; el.style.color = "#1BF075"; }
+                else if (msg.status === 'under_review') { el.textContent = "\u26a0 OPERATOR REVIEW REQUIRED"; el.style.color = "#FF9933"; }
+                else if (msg.status === 'mock_fallback') { el.textContent = "\ud83d\udce1 MOCK FALLBACK ACTIVE"; el.style.color = "#AA44FF"; }
+                else if (msg.status === 'rejected') { el.textContent = "\u2715 REJECTED / FALSE SIGNAL"; el.style.color = "#FF5566"; }
+                else if (msg.status === 'validating') { el.textContent = "\u25c8 VALIDATING..."; el.style.color = "#1A8FFF"; }
+                else if (msg.status === 'response recommended') { el.textContent = "\u2713 RESPONSE RECOMMENDED"; el.style.color = "#1BF075"; }
               }
             }
           } catch (err) {
@@ -4146,6 +4171,11 @@
       // 0 = no demo selected; user must pick a demo button or type manually.
       // NEVER default to 1 — that would make manual input look like Confirmed Flood.
       window.currentScenarioType = 0;
+      // Run-tracking for stale WS guard
+      window._currentRunId = null;
+      window._currentSessionId = null;
+      // UI state machine
+      window._uiState = 'idle';
       checkBackendStatus();
       initWebSocket();
       console.log('CIRO safety build validation-state-reset-final loaded');
@@ -4175,9 +4205,43 @@
             btn.style.color = '#1BF075';
             btn.style.borderColor = '#0A3818';
           }
+          // Reset UI state
+          setUiState('idle');
         });
       }
     });
+
+    // ═══════════════════════════════════════════════════════
+    // UI STATE MACHINE
+    // States: idle | validating | preparing | approval_required |
+    //         approved | review_required | invalid | error
+    // ═══════════════════════════════════════════════════════
+    const UI_STATES = {
+      idle:              { label: 'AWAITING SIGNAL INPUT',              color: '#3D4E62', btnText: '\u26a1 LAUNCH DISPATCH', btnDisabled: false },
+      validating:        { label: '\u25c8 VALIDATING SIGNAL...',          color: '#1A8FFF', btnText: '\u23f3 Preparing recommendation...', btnDisabled: true  },
+      preparing:         { label: '\u23f3 Preparing recommendation...',  color: '#FF9933', btnText: '\u23f3 Preparing recommendation...', btnDisabled: true  },
+      approval_required: { label: '\u23f3 Awaiting operator approval',   color: '#FF9933', btnText: 'Awaiting operator approval',     btnDisabled: true  },
+      approved:          { label: '\u2713 SIMULATED RESPONSE APPROVED \u2014 RESPONSE PACKAGE ACTIVE', color: '#1BF075', btnText: '\u26a1 LAUNCH DISPATCH', btnDisabled: false },
+      review_required:   { label: '\u26a0 OPERATOR REVIEW REQUIRED',     color: '#FF9933', btnText: '\u26a1 LAUNCH DISPATCH', btnDisabled: false },
+      invalid:           { label: '\u274c INVALID SIGNAL \u2014 NO DISPATCH', color: '#FF5566', btnText: '\u26a1 LAUNCH DISPATCH', btnDisabled: false },
+      error:             { label: '\u26a0 ERROR \u2014 FALLBACK MODE',    color: '#FF5566', btnText: '\u26a1 LAUNCH DISPATCH', btnDisabled: false },
+    };
+
+    function setUiState(newState) {
+      window._uiState = newState;
+      const cfg = UI_STATES[newState];
+      if (!cfg) return;
+      const lbl = document.getElementById('ui-safety-label');
+      if (lbl) { lbl.textContent = cfg.label; lbl.style.color = cfg.color; }
+      const btn = document.getElementById('dispatchBtn');
+      if (btn) {
+        btn.innerHTML  = cfg.btnText;
+        btn.disabled   = cfg.btnDisabled;
+        btn.style.color       = cfg.btnDisabled ? '#FF9933' : '#1BF075';
+        btn.style.borderColor = cfg.btnDisabled ? '#402000' : '#0A3818';
+      }
+    }
+
 
     function loadScenario(type) {
       window.currentScenarioType = type;
@@ -4554,8 +4618,7 @@
     function approveSimulatedResponse() {
       const modal = document.getElementById('approvalModal');
       if (modal) modal.classList.remove('show');
-      const lbl = document.getElementById('ui-safety-label');
-      if (lbl) { lbl.textContent = '✓ SIMULATED RESPONSE APPROVED — RESPONSE PACKAGE ACTIVE'; lbl.style.color = '#1BF075'; }
+      setUiState('approved');
       // Now show the result overlay with the saved data
       if (_pendingApprovalData) _showConfirmedOverlay(_pendingApprovalData);
       _pendingApprovalData = null;
@@ -4564,8 +4627,7 @@
     function keepUnderReview() {
       const modal = document.getElementById('approvalModal');
       if (modal) modal.classList.remove('show');
-      const lbl = document.getElementById('ui-safety-label');
-      if (lbl) { lbl.textContent = '⏸ OPERATOR REVIEW — NO DISPATCH RECOMMENDED'; lbl.style.color = '#FF9933'; }
+      setUiState('review_required');
       const overlay = document.getElementById('resultOverlay');
       if (overlay) {
         overlay.className = 'result-overlay visible review';
@@ -4774,20 +4836,30 @@
       if (card) card.classList.add('active');
     }
     function populateResourcePanel(status, result) {
-      const plan = result.plan || {};
-      const action = result.action || {};
-      const inc = result.incident || {};
-      const pop = plan.affected_population || 0;
-      const sev = inc.severity || 0;
-      const delay = plan.estimated_delay_minutes || 0;
-      const loc = action.alert_message || plan.mitigation_strategy || 'University Road area';
+      // Use pre-built resources from backend if available, else scale from severity
+      const backendResources = result.resources || [];
+      const plan   = result.plan    || {};
+      const action = result.action  || {};
+      const inc    = result.incident || {};
+      const pop    = result.affected_population || plan.affected_population || 0;
+      const sev    = result.severity || inc.severity || 0;
+      const delay  = result.estimated_delay_minutes || plan.estimated_delay_minutes || 0;
 
-      // Scale resources by severity
-      const pumps  = sev >= 8 ? 5 : sev >= 5 ? 3 : 1;
-      const police = sev >= 8 ? 6 : sev >= 5 ? 4 : 2;
-      const rescue = sev >= 8 ? 3 : sev >= 5 ? 2 : 1;
-      const utility= sev >= 8 ? 2 : 1;
-      const hospital = sev >= 7 ? 'CIVIL + LIAQUAT' : 'CIVIL HOSPITAL KHI';
+      const pumps  = backendResources.length
+        ? (backendResources.find(r => r.type && r.type.includes('Pump'))?.count || 1)
+        : (sev >= 8 ? 5 : sev >= 5 ? 3 : 1);
+      const police = backendResources.length
+        ? (backendResources.find(r => r.type && r.type.includes('Police'))?.count || 2)
+        : (sev >= 8 ? 6 : sev >= 5 ? 4 : 2);
+      const rescue = backendResources.length
+        ? (backendResources.find(r => r.type && r.type.includes('Rescue'))?.count || 1)
+        : (sev >= 8 ? 3 : sev >= 5 ? 2 : 1);
+      const utility = backendResources.length
+        ? (backendResources.find(r => r.type && r.type.includes('Utility'))?.count || 1)
+        : (sev >= 8 ? 2 : 1);
+      const hospital = backendResources.length
+        ? (backendResources.find(r => r.type && r.type.includes('Hospital'))?.name || 'CIVIL HOSPITAL KHI')
+        : (sev >= 7 ? 'CIVIL + LIAQUAT' : 'CIVIL HOSPITAL KHI');
 
       document.getElementById('rpPumps').textContent   = pumps;
       document.getElementById('rpTraffic').textContent = police;
@@ -4797,25 +4869,36 @@
 
       const rpReason = document.getElementById('rpReason');
       if (status === 'completed') {
-        rpReason.textContent = `Severity ${sev} · ~${pop.toLocaleString()} affected · ${delay}min delay. StrategistAgent allocated ${pumps} pumps, ${police} traffic units, ${rescue} rescue teams.`;
+        rpReason.textContent = `Severity ${sev} · ~${Number(pop).toLocaleString()} affected · ${delay}min delay. StrategistAgent allocated ${pumps} pumps, ${police} traffic units, ${rescue} rescue teams.`;
       } else if (status === 'requires_operator_review') {
         rpReason.textContent = 'Allocation on HOLD — ValidatorGate flagged contradiction. Operator must approve before dispatch.';
       } else {
         rpReason.textContent = 'No resource allocation required. Signal rejected or no incident detected.';
       }
 
-      // Stakeholder messages — dynamic
-      const alertMsg = action.alert_message || 'Active flooding detected. Emergency response deployed.';
-      document.getElementById('sth-public-body').textContent =
-        `⚠ FLOOD ALERT — ${plan.priority ? plan.priority.toUpperCase() : 'HIGH'} PRIORITY. ${alertMsg} Estimated delay: ${delay} min. Avoid affected area. Use alternate routes.`;
-      document.getElementById('sth-police-body').textContent =
-        `Deploy ${police} personnel to junction control. Redirect inbound traffic per CIRO route advisory. ETA response required in <10 min. Coordinate via CIRO command channel.`;
-      document.getElementById('sth-hospital-body').textContent =
-        `CIRO ALERT: Possible trauma intake from flood zone. Estimated affected population: ${pop.toLocaleString()}. Severity: ${sev}. Water level rising. Activate emergency intake protocol if severity ≥ 7.`;
-      document.getElementById('sth-utility-body').textContent =
-        `CIRO ALERT: Flooding in target sector. Inspect drainage sub-mains and electrical infrastructure. ${utility} utility team(s) dispatched. Risk of underground cable shorting.`;
-      document.getElementById('sth-municipal-body').textContent =
-        `Incident logged in Firestore (database=cirokhi). All dispatch orders require operator console approval. Priority: ${plan.priority || 'unknown'}. Session ID auto-generated. Trace streaming on /ws/live-trace.`;
+      // Stakeholder messages — use backend-generated if available, else build locally
+      const backendStk = result.stakeholder_messages || [];
+      const _stk = (recipient) => backendStk.find(s => s.recipient === recipient);
+
+      const loc = inc.location || plan.location || 'University Road';
+      const pri = result.priority || plan.priority || 'high';
+
+      const publicMsg = _stk('public')?.body ||
+        `⚠ FLOOD ALERT — ${pri.toUpperCase()} PRIORITY. Active flooding at ${loc}. Estimated delay: ${delay} min. Avoid affected area. Use alternate routes.`;
+      const policeMsg = _stk('traffic_police')?.body ||
+        `Deploy ${police} personnel to junction control. Redirect inbound traffic per CIRO advisory. ETA response required in <10 min.`;
+      const hospMsg = _stk('hospital')?.body ||
+        `CIRO ALERT: Flood zone ${loc}. Severity ${sev}/10. Population at risk: ${Number(pop).toLocaleString()}. Activate emergency intake protocol if severity ≥ 7.`;
+      const utilMsg = _stk('utility')?.body ||
+        `CIRO ALERT: Flooding in sector. Inspect drainage and electrical infrastructure. ${utility} utility team(s) deployed.`;
+      const munMsg = _stk('municipal')?.body ||
+        `Incident logged (database=cirokhi). Priority: ${pri}. All dispatch requires console approval. Trace on /ws/live-trace.`;
+
+      document.getElementById('sth-public-body').textContent   = publicMsg;
+      document.getElementById('sth-police-body').textContent   = policeMsg;
+      document.getElementById('sth-hospital-body').textContent = hospMsg;
+      document.getElementById('sth-utility-body').textContent  = utilMsg;
+      document.getElementById('sth-municipal-body').textContent= munMsg;
 
       // Style panel border by status
       const panel = document.getElementById('resourcePanel');
@@ -4833,44 +4916,68 @@
 
     function processDispatchResult(data) {
       const overlay = document.getElementById('resultOverlay');
-      const lbl = document.getElementById('ui-safety-label');
-      const badges = document.getElementById('source-badges-container');
-      const result = data.result || {};
-      const status = result.status || data.status || 'unknown';
+      const badges  = document.getElementById('source-badges-container');
+      // Unwrap: backend wraps result in {session_id, run_id, status, result: {...}}
+      const result   = data.result || data || {};
+      const status   = result.status || data.status || 'unknown';
+
+      // ── Capture run_id for stale WS guard ──
+      if (data.run_id) window._currentRunId = data.run_id;
+      if (data.session_id) window._currentSessionId = data.session_id;
+
       hideResourcePanel();
 
-      // --- SOURCE BADGES ---
+      // ── Source badges: prefer backend source_labels, else parse raw_signals ──
       if (badges) {
         badges.innerHTML = '';
-        const incident = result.incident || {};
-        const signals = incident.raw_signals || {};
-        ['weather','traffic','social'].forEach(src => {
-          const s = signals[src];
-          if (s) {
-            const source = s.source || '';
-            const isReal = source.includes('google');
+        const sourceLabels = result.source_labels || {};
+        if (Object.keys(sourceLabels).length) {
+          // Use structured labels from backend response_builder
+          const labelMap = {
+            weather:    { real: ['Live'], mock: ['Mock', 'Unavailable'] },
+            traffic:    { real: ['Live'], mock: ['Mock', 'Unavailable'] },
+            social:     { real: ['User-entered'], mock: ['Demo / Mock', 'Mock'] },
+            validation: { real: ['Confirmed'], mock: ['Review', 'Invalid'] },
+          };
+          Object.entries(sourceLabels).forEach(([src, lbl]) => {
+            const isReal = labelMap[src]?.real.includes(lbl);
             const badge = document.createElement('span');
             badge.className = 'src-badge ' + (isReal ? 'real' : 'mock');
-            badge.textContent = (isReal ? '● REAL: ' : '◐ MOCK: ') + src.toUpperCase();
+            badge.textContent = (isReal ? '● ' : '◐ ') + src.toUpperCase() + ': ' + lbl.toUpperCase();
             badges.appendChild(badge);
+          });
+        } else {
+          // Fallback: parse raw_signals from legacy format
+          const incident = result.incident || {};
+          const signals  = incident.raw_signals || {};
+          ['weather','traffic','social'].forEach(src => {
+            const s = signals[src];
+            if (s) {
+              const source = s.source || '';
+              const isReal = source.includes('google');
+              const badge = document.createElement('span');
+              badge.className = 'src-badge ' + (isReal ? 'real' : 'mock');
+              badge.textContent = (isReal ? '● REAL: ' : '◐ MOCK: ') + src.toUpperCase();
+              badges.appendChild(badge);
+            }
+          });
+          if (status === 'requires_operator_review') {
+            const rb = document.createElement('span');
+            rb.className = 'src-badge review';
+            rb.textContent = '⚠ REVIEW REQUIRED';
+            badges.appendChild(rb);
           }
-        });
-        if (status === 'requires_operator_review') {
-          const rb = document.createElement('span');
-          rb.className = 'src-badge review';
-          rb.textContent = '⚠ REVIEW REQUIRED';
-          badges.appendChild(rb);
-        }
-        const safety = result.safety_validation || {};
-        if (safety.fallback_mode) {
-          const fb = document.createElement('span');
-          fb.className = 'src-badge mock';
-          fb.textContent = '◐ FALLBACK MODE';
-          badges.appendChild(fb);
+          const safety = result.safety_validation || {};
+          if (safety.fallback_mode) {
+            const fb = document.createElement('span');
+            fb.className = 'src-badge mock';
+            fb.textContent = '◐ FALLBACK MODE';
+            badges.appendChild(fb);
+          }
         }
       }
 
-      // --- DEMO STATE CHIP ---
+      // ── Demo state chip ──
       const chip = document.getElementById('demoStateChip');
       if (chip) {
         const t = window.currentScenarioType || 0;
@@ -4882,14 +4989,14 @@
         else { chip.classList.add('review'); chip.textContent = '⚠ LIVE INPUT'; }
       }
 
-      // --- STATUS ROUTING ---
+      // ── Status routing using setUiState ──
       if (status === 'completed' && result.incident) {
-        // Confirmed incident: show approval gate first
-        if (lbl) { lbl.textContent = '⏳ Recommendation ready — awaiting operator approval'; lbl.style.color = '#FF9933'; }
+        // Confirmed: show approval gate, block WS overwrite
+        setUiState('approval_required');
         showApprovalModal(result);
 
       } else if (status === 'requires_operator_review') {
-        if (lbl) { lbl.textContent = '⚠ OPERATOR REVIEW REQUIRED'; lbl.style.color = '#FF9933'; }
+        setUiState('review_required');
         overlay.className = 'result-overlay visible review';
         document.getElementById('resultTitle').textContent = '⚠ OPERATOR REVIEW';
         document.getElementById('resultTitle').style.color = '#FF9933';
@@ -4898,13 +5005,30 @@
         document.getElementById('resultConfBar').style.width = '0';
         document.getElementById('resultPopulation').textContent = '—';
         document.getElementById('resultPriority').textContent = result.reason ? 'REVIEW' : '—';
-        document.getElementById('resultAction').textContent = result.reason || 'Signal requires manual operator review before any dispatch.';
+        document.getElementById('resultAction').textContent =
+          result.action_text || result.reason || 'Signal requires manual operator review before any dispatch.';
         if (chip) { chip.className = 'demo-state-chip review'; chip.textContent = '⚠ OPERATOR REVIEW'; }
         populateResourcePanel('requires_operator_review', result);
         setTimeout(() => overlay.classList.remove('visible'), 10000);
 
+      } else if (status === 'invalid_signal') {
+        // Backend pre-validation rejected it (e.g. gibberish that slipped past frontend)
+        setUiState('invalid');
+        overlay.className = 'result-overlay visible rejected';
+        document.getElementById('resultTitle').textContent = '❌ INVALID SIGNAL';
+        document.getElementById('resultTitle').style.color = '#FF5566';
+        document.getElementById('resultSeverity').textContent = '—';
+        document.getElementById('resultConfidence').textContent = '0%';
+        document.getElementById('resultConfBar').style.width = '0';
+        document.getElementById('resultPopulation').textContent = '—';
+        document.getElementById('resultPriority').textContent = 'NONE';
+        document.getElementById('resultAction').textContent =
+          result.action_text || result.reason || 'Input failed ValidatorGate pre-check. Not a valid crisis signal.';
+        if (chip) { chip.className = 'demo-state-chip rejected'; chip.textContent = '❌ INVALID SIGNAL'; }
+        setTimeout(() => overlay.classList.remove('visible'), 8000);
+
       } else if (status === 'no_incident') {
-        if (lbl) { lbl.textContent = '✕ NO INCIDENT — FALSE ALARM'; lbl.style.color = '#FF5566'; }
+        setUiState('review_required');
         overlay.className = 'result-overlay visible rejected';
         document.getElementById('resultTitle').textContent = '✕ NO INCIDENT';
         document.getElementById('resultTitle').style.color = '#FF5566';
@@ -4913,7 +5037,8 @@
         document.getElementById('resultConfBar').style.width = '0';
         document.getElementById('resultPopulation').textContent = '0';
         document.getElementById('resultPriority').textContent = 'NONE';
-        document.getElementById('resultAction').textContent = result.message || 'Signal classified as false alarm. No crisis detected.';
+        document.getElementById('resultAction').textContent =
+          result.action_text || result.reason || 'Signal classified as false alarm. No crisis detected.';
         if (chip) { chip.className = 'demo-state-chip rejected'; chip.textContent = '✕ FALSE ALARM'; }
         populateResourcePanel('no_incident', result);
         setTimeout(() => overlay.classList.remove('visible'), 8000);

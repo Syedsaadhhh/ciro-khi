@@ -74,11 +74,12 @@ class WebSocketManager:
             "timestamp": datetime.utcnow().isoformat(),
         })
 
-    async def broadcast_status(self, status: str, session_id: str):
+    async def broadcast_status(self, status: str, session_id: str, run_id: str = None):
         await self.broadcast({
             "type": "workflow_status",
             "status": status,
             "session_id": session_id,
+            "run_id": run_id,
             "timestamp": datetime.utcnow().isoformat(),
         })
 
